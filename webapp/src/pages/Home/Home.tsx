@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { format } from 'date-fns';
-import { DayPicker, SelectMultipleEventHandler } from 'react-day-picker';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
 	useMiniApp,
 	useMainButton,
@@ -9,21 +7,29 @@ import {
 	Popup,
 } from '@telegram-apps/sdk-react';
 import { useMutation } from '@tanstack/react-query';
-import { Text, Spinner } from '@telegram-apps/telegram-ui';
+import { Text, Spinner, Input, Tappable, List } from '@telegram-apps/telegram-ui';
+import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
 
-import { sendDates } from '@/api';
-import 'react-day-picker/dist/style.css';
+import { sendInputs } from '@/api'; // Assume this function handles the backend call
 import styles from './Home.module.css';
 
 interface HomeProps {
 	token: string;
 }
 
+interface InputData {
+	input1: string;
+	input2: string;
+	input3: string;
+}
+
 const Home: React.FC<HomeProps> = ({ token }) => {
 	const miniapp = useMiniApp();
 	const mainButton = useMainButton();
 	const popup = initPopup();
-	const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+	const [input1, setInput1] = useState('');
+	const [input2, setInput2] = useState('');
+	const [input3, setInput3] = useState('');
 
 	// Initialize haptic feedback
 	const hapticFeedback = initHapticFeedback();
@@ -32,11 +38,10 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 		miniapp.ready();
 	}, [miniapp]);
 
-	const dateMutation = useMutation({
-		mutationKey: ['sendDate', token],
-		mutationFn: async (dates: Date[]) => {
-			const formattedDates = dates.map(date => format(date, 'yyyy-MM-dd'));
-			return sendDates(token, formattedDates);
+	const inputMutation = useMutation<void, Error, InputData>({
+		mutationKey: ['sendInputs', token],
+		mutationFn: async ({ input1, input2, input3 }) => {
+			return sendInputs(token, { input1, input2, input3 });
 		},
 		onSuccess: () => {
 			miniapp.close(true);
@@ -53,26 +58,26 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 				})
 				.then((buttonId: string | null) => {
 					if (buttonId === 'retry') {
-						dateMutation.mutate(selectedDates);
+						inputMutation.mutate({ input1, input2, input3 });
 					}
 				});
 		},
 	});
 
 	const handleMainButtonClick = useCallback(() => {
-		if (selectedDates.length > 0) {
+		if (input1 && input2 && input3) {
 			// Trigger haptic feedback
 			hapticFeedback.impactOccurred('medium');
 
-			dateMutation.mutate(selectedDates);
+			inputMutation.mutate({ input1, input2, input3 });
 		}
-	}, [selectedDates, dateMutation, hapticFeedback]);
+	}, [input1, input2, input3, inputMutation, hapticFeedback]);
 
 	useEffect(() => {
-		if (selectedDates.length > 0) {
-			mainButton.setText('Select dates');
+		if (input1 && input2 && input3) {
+			mainButton.setText('Submit');
 			mainButton.show();
-			if (dateMutation.isLoading) {
+			if (inputMutation.isLoading) {
 				mainButton.disable();
 				mainButton.showLoader();
 			} else {
@@ -86,46 +91,83 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 		return () => {
 			mainButton.off('click', handleMainButtonClick);
 		};
-	}, [selectedDates, dateMutation.isLoading, mainButton, handleMainButtonClick]);
+	}, [input1, input2, input3, inputMutation.isLoading, mainButton, handleMainButtonClick]);
 
-	const handleSelectDates: SelectMultipleEventHandler = useCallback(days => {
-		setSelectedDates(days || []);
-	}, []);
-
-	const footer = useMemo(() => {
-		if (selectedDates.length === 0) {
-			return <Text>Please pick the days you propose for the meetup.</Text>;
-		}
-		return (
-			<Text>
-				You picked {selectedDates.length} {selectedDates.length > 1 ? 'dates' : 'date'}:{' '}
-				{selectedDates.map((date, index) => (
-					<React.Fragment key={date.getTime()}>
-						{index ? ', ' : ''}
-						{format(date, 'PP')}
-					</React.Fragment>
-				))}
-			</Text>
-		);
-	}, [selectedDates]);
-
-	if (dateMutation.isLoading) {
+	if (inputMutation.isLoading) {
 		return <Spinner size="l" />;
 	}
 
 	return (
 		<div className={styles.container}>
-			<h2 className={styles.title}>Pick proposed dates</h2>
-			<DayPicker
-				mode="multiple"
-				weekStartsOn={1}
-				min={1}
-				max={5}
-				selected={selectedDates}
-				onSelect={handleSelectDates}
-				footer={footer}
-				disabled={dateMutation.isLoading}
-			/>
+			<h2 className={styles.title}>Enter Information</h2>
+			<List
+				style={{
+					width: 400,
+					maxWidth: '100%',
+					margin: 'auto',
+					background: 'var(--tgui--secondary_bg_color)',
+				}}
+			>
+				<Input
+					status="focused"
+					header="Ключ"
+					placeholder="Write and clean me"
+					value={input1}
+					onChange={e => setInput1(e.target.value)}
+					after={
+						<Tappable
+							Component="div"
+							style={{
+								display: 'flex',
+							}}
+							onClick={() => setInput1('')}
+						>
+							<Icon24Close />
+						</Tappable>
+					}
+				/>
+				<Input
+					status="focused"
+					header="Описание"
+					placeholder="Write and clean me"
+					value={input2}
+					onChange={e => setInput2(e.target.value)}
+					after={
+						<Tappable
+							Component="div"
+							style={{
+								display: 'flex',
+							}}
+							onClick={() => setInput2('')}
+						>
+							<Icon24Close />
+						</Tappable>
+					}
+				/>
+				<Input
+					status="focused"
+					header="Цена"
+					placeholder="Write and clean me"
+					value={input3}
+					onChange={e => setInput3(e.target.value)}
+					after={
+						<Tappable
+							Component="div"
+							style={{
+								display: 'flex',
+							}}
+							onClick={() => setInput3('')}
+						>
+							<Icon24Close />
+						</Tappable>
+					}
+				/>
+				<Text>
+					{input1 && input2 && input3
+						? "All fields are filled. Click 'Create Item' to submit."
+						: 'Please fill in all fields to create a payable item.'}
+				</Text>
+			</List>
 		</div>
 	);
 };
