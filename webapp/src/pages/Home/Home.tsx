@@ -10,7 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Text, Spinner, Input, Tappable, List } from '@telegram-apps/telegram-ui';
 import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
 
-import { sendInputs } from '@/api'; // Assume this function handles the backend call
+//import { sendInputs } from '@/api'; // Assume this function handles the backend call
 import styles from './Home.module.css';
 
 interface HomeProps {
@@ -41,7 +41,10 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 	const inputMutation = useMutation<void, Error, InputData>({
 		mutationKey: ['sendInputs', token],
 		mutationFn: async ({ input1, input2, input3 }) => {
-			return sendInputs(token, { input1, input2, input3 });
+			if (!token) {
+				throw new Error('Token is required');
+			}
+			return console.log('Form submitted:', { input1, input2, input3 });
 		},
 		onSuccess: () => {
 			miniapp.close(true);
