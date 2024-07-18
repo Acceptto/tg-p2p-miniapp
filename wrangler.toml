@@ -1,0 +1,10 @@
+name = "miniapp-scafolding"
+compatibility_date = "2023-10-07"
+
+# For Cloudflare Workers
+main = "worker/index.ts"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "telegram-calendar"
+database_id = "df5dbd5b-b23d-404e-97e2-d15fe5a8123e"

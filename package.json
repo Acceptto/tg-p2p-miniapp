@@ -1,0 +1,21 @@
+{
+	"name": "template-worker-router",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy worker/index.ts",
+		"dev": "wrangler dev worker/index.ts --local true",
+		"dev:db:init": "wrangler d1 execute DB --file worker/sql/init.sql --local",
+		"dev:db:drop": "wrangler d1 execute DB --file worker/sql/drop.sql  --local",
+		"type-check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vlad-yakovlev/telegram-md": "^2.0.0",
+		"itty-router": "^2.6.1"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20240712.0",
+		"typescript": "^5.5.3",
+		"wrangler": "^3.0.0"
+	}
+}
