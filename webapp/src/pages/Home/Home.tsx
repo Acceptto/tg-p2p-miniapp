@@ -108,13 +108,12 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 					width: 400,
 					maxWidth: '100%',
 					margin: 'auto',
-					background: 'var(--tgui--secondary_bg_color)',
 				}}
 			>
 				<Input
 					status="focused"
 					header="Ключ"
-					placeholder="Write and clean me"
+					placeholder="ключ"
 					value={input1}
 					onChange={e => setInput1(e.target.value)}
 					after={
@@ -131,8 +130,8 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 				/>
 				<Input
 					status="focused"
-					header="Описание"
-					placeholder="Write and clean me"
+					header="Опис"
+					placeholder="опис"
 					value={input2}
 					onChange={e => setInput2(e.target.value)}
 					after={
@@ -149,8 +148,8 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 				/>
 				<Input
 					status="focused"
-					header="Цена"
-					placeholder="Write and clean me"
+					header="Ціна"
+					placeholder="ціна"
 					value={input3}
 					onChange={e => setInput3(e.target.value)}
 					after={

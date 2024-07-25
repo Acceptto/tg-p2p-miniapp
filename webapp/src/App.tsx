@@ -11,12 +11,15 @@ import {
 	useViewport,
 	useClosingBehavior,
 	useBackButton,
+	useSwipeBehavior,
 } from '@telegram-apps/sdk-react';
 import { AppRoot } from '@telegram-apps/telegram-ui';
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { Navigate, Route, Router, Routes, RouteObject } from 'react-router-dom';
 
 import { routes } from '@/navigation/routes';
+
+import '@telegram-apps/telegram-ui/dist/styles.css';
 
 const queryClient = new QueryClient();
 
@@ -27,11 +30,13 @@ export const App: React.FC = () => {
 	const viewport = useViewport();
 	const closingBehavior = useClosingBehavior();
 	const backButton = useBackButton();
+	//const swipeBehavior = useSwipeBehavior();
 
 	useEffect(() => {
 		if (viewport) {
 			bindViewportCSSVars(viewport);
 			viewport.expand();
+			//swipeBehavior.disableVerticalSwipe();
 		}
 	}, [viewport]);
 
