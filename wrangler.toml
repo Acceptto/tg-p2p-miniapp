@@ -7,4 +7,4 @@ main = "worker/index.ts"
 [[d1_databases]]
 binding = "DB"
 database_name = "telegram-p2p"
-database_id = "a1639007-789a-4991-82cc-d85382595786"
+database_id = "1bd48c2c-1da1-46b3-ad80-43962c62719b"

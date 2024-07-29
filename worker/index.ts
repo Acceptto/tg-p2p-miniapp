@@ -24,7 +24,7 @@ interface App {
 interface InstagramApiResponse {
 	id: string; // This is the app-scoped ID from the API
 	user_id: string;
-	username?: string;
+	username: string;
 	name?: string;
 	account_type?: string;
 	followers_count?: number;
@@ -38,7 +38,8 @@ function isInstagramApiResponse(response: any): response is InstagramApiResponse
 	return (
 		typeof response === 'object' &&
 		typeof response.id === 'string' &&
-		typeof response.user_id === 'string'
+		typeof response.user_id === 'string' &&
+		typeof response.username === 'string'
 	);
 }
 
@@ -65,16 +66,16 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 			const me = await instagram.getMe();
 			if (isInstagramApiResponse(me)) {
 				instagram_professional_user = {
-					app_scoped_id: me.id, // Store the app-scoped ID from the API
+					app_scoped_id: me.id,
 					user_id: me.user_id,
 					username: me.username,
-					name: me.name,
-					account_type: me.account_type,
-					profile_picture_url: me.profile_picture_url,
-					followers_count: me.followers_count,
-					follows_count: me.follows_count,
-					media_count: me.media_count,
-					access_token: env.INSTAGRAM_BOT_TOKEN, // Assuming this is the correct token
+					name: me.name || null,
+					account_type: me.account_type || null,
+					profile_picture_url: me.profile_picture_url || null,
+					followers_count: me.followers_count || null,
+					follows_count: me.follows_count || null,
+					media_count: me.media_count || null,
+					access_token: env.INSTAGRAM_BOT_TOKEN,
 				};
 
 				const saveResult = await db.saveInstagramProfessionalUser(instagram_professional_user);
@@ -85,10 +86,18 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 					instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(me.id);
 				}
 			} else {
-				console.error('Invalid response format from Instagram API');
+				console.error('Invalid response format from Instagram API:', me);
+				return new Response(JSON.stringify({ error: 'Invalid response from Instagram API' }), {
+					status: 500,
+					headers: { 'Content-Type': 'application/json' },
+				});
 			}
 		} catch (error) {
 			console.error('Failed to get Instagram user data:', error);
+			return new Response(JSON.stringify({ error: 'Failed to get Instagram user data' }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			});
 		}
 	}
 
@@ -96,7 +105,25 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	return await router.handle(request, app, env, ctx);
 };
 
-// ... rest of the code remains the same
+router.get('/', () => {
+	return new Response(
+		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
+		{ status: 200 }
+	);
+});
+
+router.options(
+	'/miniApp/*',
+	(request: Request, app: App, env: Env) =>
+		new Response('Success', {
+			headers: {
+				...app.corsHeaders,
+			},
+			status: 200,
+		})
+);
+
+router.all('*', () => new Response('404, not found!', { status: 404 }));
 
 export default {
 	fetch: handle,
