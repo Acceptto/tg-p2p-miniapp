@@ -1,26 +1,9 @@
 import { Router } from 'itty-router';
 import { Instagram } from './instagram';
 import { Database, InstagramProfessionalUser } from './db';
-import { processMessage } from './messageProcessor';
-import { MessageSender } from './messageSender';
-import { generateSecret, sha256 } from './cryptoUtils';
-
-interface Env {
-	INSTAGRAM_BOT_TOKEN: string;
-	TELEGRAM_USE_TEST_API: boolean;
-	DB: any; // TODO: Replace 'any' with your actual database type if possible
-	FRONTEND_URL: string;
-	INIT_SECRET: string;
-	WEBHOOK_VERIFY_TOKEN: string;
-}
-
-interface App {
-	instagram: Instagram;
-	db: Database;
-	corsHeaders: Record<string, string>;
-	isLocalhost: boolean;
-	instagram_professional_user: InstagramProfessionalUser | null;
-}
+import { processField } from './webhookMessageProcessor';
+import { App, Env } from './types';
+import { hmacSha256, hex } from './cryptoUtils';
 
 interface InstagramApiResponse {
 	id: string;
@@ -34,6 +17,19 @@ interface InstagramApiResponse {
 	profile_picture_url?: string | null;
 }
 
+interface InstagramWebhookPayload {
+	object: string;
+	entry: Array<{
+		id: string;
+		time: number;
+		changed_fields?: string[];
+		changes?: Array<{
+			field: string;
+			value: any;
+		}>;
+	}>;
+}
+
 function isInstagramApiResponse(response: any): response is InstagramApiResponse {
 	return (
 		typeof response === 'object' &&
@@ -44,6 +40,76 @@ function isInstagramApiResponse(response: any): response is InstagramApiResponse
 }
 
 const router = Router();
+
+function createJsonResponse(data: any, status: number): Response {
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: { 'Content-Type': 'application/json' },
+	});
+}
+
+async function validatePayload(
+	request: Request,
+	body: string,
+	appSecret: string
+): Promise<boolean> {
+	const signature = request.headers.get('X-Hub-Signature-256');
+	if (!signature) {
+		console.error('No X-Hub-Signature-256 found in request header');
+		return false;
+	}
+
+	const elements = signature.split('=');
+	const signatureHash = elements[1];
+
+	const expectedHash = hex(await hmacSha256(body, appSecret));
+
+	return signatureHash === expectedHash;
+}
+
+async function fetchInstagramUser(
+	instagram: Instagram,
+	db: Database,
+	token: string
+): Promise<InstagramProfessionalUser | null> {
+	try {
+		const response = await instagram.getMe();
+
+		if (response.error) {
+			console.error('Error from Instagram API:', response.error);
+			return null;
+		}
+
+		if (isInstagramApiResponse(response)) {
+			const user: InstagramProfessionalUser = {
+				app_scoped_id: response.id,
+				user_id: response.user_id,
+				username: response.username,
+				name: response.name,
+				account_type: response.account_type,
+				profile_picture_url: response.profile_picture_url,
+				followers_count: response.followers_count,
+				follows_count: response.follows_count,
+				media_count: response.media_count,
+				access_token: token,
+			};
+
+			const saveResult = await db.saveInstagramProfessionalUser(user);
+			if (!saveResult) {
+				console.error('Failed to save Instagram user');
+				return null;
+			}
+
+			return await db.getInstagramProfessionalUserByIGID(response.user_id);
+		} else {
+			console.error('Invalid response format from Instagram API:', response);
+			return null;
+		}
+	} catch (error) {
+		console.error('Failed to get Instagram user data:', error);
+		return null;
+	}
+}
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
@@ -56,62 +122,14 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	};
 	const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
 
-	//potentially we can encrypt tokens before storing them
 	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
 		env.INSTAGRAM_BOT_TOKEN
 	);
 
 	if (!instagram_professional_user) {
-		try {
-			const response = await instagram.getMe();
-
-			if (response.error) {
-				console.error('Error from Instagram API:', response.error);
-				return new Response(JSON.stringify({ error: 'Error from Instagram API' }), {
-					status: 500,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-
-			if (isInstagramApiResponse(response)) {
-				instagram_professional_user = {
-					app_scoped_id: response.id,
-					user_id: response.user_id,
-					username: response.username,
-					name: response.name,
-					account_type: response.account_type,
-					profile_picture_url: response.profile_picture_url,
-					followers_count: response.followers_count,
-					follows_count: response.follows_count,
-					media_count: response.media_count,
-					access_token: env.INSTAGRAM_BOT_TOKEN,
-				};
-
-				const saveResult = await db.saveInstagramProfessionalUser(instagram_professional_user);
-				if (!saveResult) {
-					console.error('Failed to save Instagram user');
-					return new Response(JSON.stringify({ error: 'Failed to save Instagram user' }), {
-						status: 500,
-						headers: { 'Content-Type': 'application/json' },
-					});
-				}
-
-				instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(
-					response.id
-				);
-			} else {
-				console.error('Invalid response format from Instagram API:', response);
-				return new Response(JSON.stringify({ error: 'Invalid response from Instagram API' }), {
-					status: 500,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-		} catch (error) {
-			console.error('Failed to get Instagram user data:', error);
-			return new Response(JSON.stringify({ error: 'Failed to get Instagram user data' }), {
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			});
+		instagram_professional_user = await fetchInstagramUser(instagram, db, env.INSTAGRAM_BOT_TOKEN);
+		if (!instagram_professional_user) {
+			return createJsonResponse({ error: 'Failed to fetch Instagram user' }, 500);
 		}
 	}
 
@@ -140,7 +158,7 @@ router.get('/', (request: Request, app: App, env: Env) => {
 			return new Response(challenge || '', { status: 200 });
 		} else {
 			console.error('Webhook verification failed');
-			return new Response('Forbidden', { status: 403 });
+			return createJsonResponse({ error: 'Forbidden' }, 403);
 		}
 	}
 
@@ -150,18 +168,47 @@ router.get('/', (request: Request, app: App, env: Env) => {
 	);
 });
 
-router.post('/', async (request: Request, app: App, env: Env) => {
+router.post('/', async (request: Request, env: Env) => {
+	console.log('POST request received for Instagram webhook');
+
+	const clonedRequest = request.clone();
+	const body = await clonedRequest.text();
+
+	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
+	if (!isValid) {
+		console.error('Invalid payload signature');
+		return createJsonResponse({ error: 'Invalid signature' }, 403);
+	}
+
 	try {
-		const payload = await request.json();
-		console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
+		const payload: InstagramWebhookPayload = JSON.parse(body);
+		console.log('Received payload:', JSON.stringify(payload, null, 2));
 
-		// Here you would typically process the webhook payload
-		// For now, we're just logging it
+		if (payload.object !== 'instagram') {
+			console.error('Received non-Instagram object:', payload.object);
+			return createJsonResponse({ error: 'Unsupported object type' }, 400);
+		}
 
-		return new Response('OK', { status: 200 });
+		for (const entry of payload.entry) {
+			console.log(`Processing entry for object ID: ${entry.id}, time: ${entry.time}`);
+
+			if (entry.changed_fields) {
+				for (const field of entry.changed_fields) {
+					await processField(field, null);
+				}
+			} else if (entry.changes) {
+				for (const change of entry.changes) {
+					await processField(change.field, change.value);
+				}
+			} else {
+				console.warn('Entry contains neither changed_fields nor changes');
+			}
+		}
+
+		return createJsonResponse({ message: 'OK' }, 200);
 	} catch (error) {
-		console.error('Error processing webhook:', error);
-		return new Response('Error processing webhook', { status: 400 });
+		console.error('Error processing Instagram webhook:', error);
+		return createJsonResponse({ error: 'Error processing webhook' }, 400);
 	}
 });
 
@@ -176,7 +223,7 @@ router.options(
 		})
 );
 
-router.all('*', () => new Response('404, not found!', { status: 404 }));
+router.all('*', () => createJsonResponse({ error: 'Not found' }, 404));
 
 export default {
 	fetch: handle,

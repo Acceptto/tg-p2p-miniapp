@@ -49,3 +49,4 @@ jobs:
           wrangler deploy --var FRONTEND_URL:${{ inputs.pages_url }}
           echo "${{ secrets.INSTAGRAM_BOT_TOKEN }}" | wrangler secret put INSTAGRAM_BOT_TOKEN
           echo "${{ secrets.WEBHOOK_VERIFY_TOKEN }}" | wrangler secret put WEBHOOK_VERIFY_TOKEN
+          echo "${{ secrets.INSTAGRAM_APP_SECRET }}" | wrangler secret put INSTAGRAM_APP_SECRET
