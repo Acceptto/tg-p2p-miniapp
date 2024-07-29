@@ -18,10 +18,9 @@ export const hmacSha256 = async (body: string, secret: string): Promise<Uint8Arr
 };
 
 export const hex = (buffer: Uint8Array): string => {
-	const hashArray = Array.from(buffer);
-
-	// convert bytes to hex string
-	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+	return Array.from(buffer)
+		.map(b => b.toString(16).padStart(2, '0'))
+		.join('');
 };
 
 export const generateSecret = (bytes: number): string => {

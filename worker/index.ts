@@ -59,20 +59,21 @@ async function validatePayload(
 		return false;
 	}
 
-	const elements = signature.split('=');
-	if (elements.length !== 2) {
-		console.error('Invalid X-Hub-Signature-256 format');
+	if (!signature.startsWith('sha256=')) {
+		console.error('Invalid X-Hub-Signature-256 format: missing sha256= prefix');
 		return false;
 	}
-	const signatureHash = elements[1];
+
+	const signatureHash = signature.slice(7); // 7 is the length of 'sha256='
 
 	console.log('Received body (first 100 chars):', body.substring(0, 100));
 	console.log('Body length:', body.length);
 	console.log('App secret length:', appSecret.length);
+	console.log('Extracted signature hash:', signatureHash);
 
 	try {
-		const expectedBuffer = await hmacSha256(body, appSecret);
-		const expectedHash = hex(expectedBuffer);
+		const hmacResult = await hmacSha256(body, appSecret);
+		const expectedHash = hex(hmacResult);
 
 		console.log('Received signature:', signatureHash);
 		console.log('Computed signature:', expectedHash);
