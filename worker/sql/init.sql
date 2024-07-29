@@ -1,4 +1,4 @@
-CREATE TABLE instagramProfessionalUser (
+CREATE TABLE IF NOT EXISTS instagramProfessionalUser (
     id SERIAL PRIMARY KEY,                          -- Auto-incremented primary key
     user_id VARCHAR(255) NOT NULL UNIQUE,           -- Instagram Professional User IGID
     username VARCHAR(255) NOT NULL UNIQUE,          -- Instagram username
