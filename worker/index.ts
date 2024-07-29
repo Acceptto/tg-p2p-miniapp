@@ -66,8 +66,7 @@ async function validatePayload(
 	}
 	const signatureHash = elements[1];
 
-	console.log('Validating payload');
-	console.log('Raw body (first 100 chars):', body.substring(0, 100));
+	console.log('Received body (first 100 chars):', body.substring(0, 100));
 	console.log('Body length:', body.length);
 	console.log('App secret length:', appSecret.length);
 
@@ -186,24 +185,30 @@ router.get('/', (request: Request, app: App, env: Env) => {
 	);
 });
 
-router.post('/', async (request: Request, env: Env) => {
+router.post('/', async (request: Request, app: App, env: Env) => {
 	console.log('POST request received for Instagram webhook');
 
-	// Read the raw body as text
-	const rawBody = await request.text();
-	console.log('Raw body (first 100 chars):', rawBody.substring(0, 100));
+	const clonedRequest = request.clone();
+	const body = await clonedRequest.text();
 
-	// Validate the payload with the raw body
-	const isValid = await validatePayload(request, rawBody, env.INSTAGRAM_APP_SECRET);
+	// Check if the body is a valid JSON string
+	try {
+		JSON.parse(body);
+	} catch (error) {
+		console.error('Received payload is not valid JSON');
+		return createJsonResponse({ error: 'Invalid payload format' }, 400);
+	}
+
+	console.log('INSTAGRAM_APP_SECRET is set:', !!env.INSTAGRAM_APP_SECRET);
+	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
 		console.error('Invalid payload signature');
 		return createJsonResponse({ error: 'Invalid signature' }, 403);
 	}
 
 	try {
-		// Parse the body as JSON only after validation
-		const payload: InstagramWebhookPayload = JSON.parse(rawBody);
-		console.log('Parsed payload:', JSON.stringify(payload, null, 2));
+		const payload: InstagramWebhookPayload = JSON.parse(body);
+		console.log('Received payload:', JSON.stringify(payload, null, 2));
 
 		if (payload.object !== 'instagram') {
 			console.error('Received non-Instagram object:', payload.object);
@@ -215,11 +220,11 @@ router.post('/', async (request: Request, env: Env) => {
 
 			if (entry.changed_fields) {
 				for (const field of entry.changed_fields) {
-					await processField(field, null, env);
+					await processField(field, null, app, env);
 				}
 			} else if (entry.changes) {
 				for (const change of entry.changes) {
-					await processField(change.field, change.value, env);
+					await processField(change.field, change.value, app, env);
 				}
 			} else {
 				console.warn('Entry contains neither changed_fields nor changes');
