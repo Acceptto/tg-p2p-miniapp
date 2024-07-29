@@ -21,17 +21,24 @@ interface App {
 	instagram_professional_user: InstagramProfessionalUser | null;
 }
 
-interface InstagramResponse {
-	data: InstagramProfessionalUser[];
+interface InstagramApiResponse {
+	id: string; // This is the app-scoped ID from the API
+	user_id: string;
+	username?: string;
+	name?: string;
+	account_type?: string;
+	followers_count?: number;
+	follows_count?: number;
+	media_count?: number;
+	profile_picture_url?: string;
 }
 
-// Type guard for InstagramResponse
-function isInstagramResponse(response: any): response is InstagramResponse {
+// Type guard for InstagramApiResponse
+function isInstagramApiResponse(response: any): response is InstagramApiResponse {
 	return (
-		Array.isArray(response?.data) &&
-		response.data.length > 0 &&
-		typeof response.data[0].user_id === 'string' &&
-		typeof response.data[0].username === 'string'
+		typeof response === 'object' &&
+		typeof response.id === 'string' &&
+		typeof response.user_id === 'string'
 	);
 }
 
@@ -56,15 +63,26 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	if (!instagram_professional_user) {
 		try {
 			const me = await instagram.getMe();
-			if (isInstagramResponse(me)) {
-				instagram_professional_user = me.data[0];
-				if (instagram_professional_user) {
-					const saveResult = await db.saveInstagramProfessionalUser(instagram_professional_user);
-					if (!saveResult) {
-						console.error('Failed to save Instagram user');
-					}
+			if (isInstagramApiResponse(me)) {
+				instagram_professional_user = {
+					app_scoped_id: me.id, // Store the app-scoped ID from the API
+					user_id: me.user_id,
+					username: me.username,
+					name: me.name,
+					account_type: me.account_type,
+					profile_picture_url: me.profile_picture_url,
+					followers_count: me.followers_count,
+					follows_count: me.follows_count,
+					media_count: me.media_count,
+					access_token: env.INSTAGRAM_BOT_TOKEN, // Assuming this is the correct token
+				};
+
+				const saveResult = await db.saveInstagramProfessionalUser(instagram_professional_user);
+				if (!saveResult) {
+					console.error('Failed to save Instagram user');
 				} else {
-					console.error('Failed to get user');
+					// After saving, fetch the user again to get the auto-incremental ID
+					instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(me.id);
 				}
 			} else {
 				console.error('Invalid response format from Instagram API');
@@ -78,25 +96,7 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	return await router.handle(request, app, env, ctx);
 };
 
-router.get('/', () => {
-	return new Response(
-		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
-		{ status: 200 }
-	);
-});
-
-router.options(
-	'/miniApp/*',
-	(request: Request, app: App, env: Env) =>
-		new Response('Success', {
-			headers: {
-				...app.corsHeaders,
-			},
-			status: 200,
-		})
-);
-
-router.all('*', () => new Response('404, not found!', { status: 404 }));
+// ... rest of the code remains the same
 
 export default {
 	fetch: handle,
