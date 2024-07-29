@@ -4,7 +4,6 @@ import {
 	useMiniApp,
 	useBackButton,
 	useHapticFeedback,
-	LaunchParams,
 	useLaunchParams,
 } from '@telegram-apps/sdk-react';
 import { LargeTitle, Subheadline, Caption, Steps, Link } from '@telegram-apps/telegram-ui';
@@ -72,7 +71,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
 	const slides: Slide[] = useMemo(
 		() =>
-			t('onboarding.slides').map((slide: any, index: number) => ({
+			t('onboarding.slides').map((slide: JSON, index: number) => ({
 				...slide,
 				animation: [
 					welcomeAnimation,

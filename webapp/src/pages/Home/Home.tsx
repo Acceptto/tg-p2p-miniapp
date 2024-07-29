@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-	useMiniApp,
-	useMainButton,
-	initPopup,
-	initHapticFeedback,
-	Popup,
-} from '@telegram-apps/sdk-react';
+import { useMiniApp, useMainButton, initPopup, initHapticFeedback } from '@telegram-apps/sdk-react';
 import { useMutation } from '@tanstack/react-query';
 import { Text, Spinner, Input, Tappable, List } from '@telegram-apps/telegram-ui';
 import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';

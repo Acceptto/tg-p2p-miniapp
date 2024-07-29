@@ -3,10 +3,8 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { fileURLToPath } from 'url';
 import process from 'node:process';
-
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
-
 	return {
 		base: '/',
 		plugins: [react(), tsconfigPaths()],
@@ -29,7 +27,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		define: {
-			'__APP_VERSION__': JSON.stringify(process.env.npm_package_version),
+			'APP_VERSION': JSON.stringify(process.env.npm_package_version),
 			// Expose env variables to your app
 			'process.env': env,
 		},
