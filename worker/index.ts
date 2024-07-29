@@ -8,9 +8,10 @@ import { generateSecret, sha256 } from './cryptoUtils';
 interface Env {
 	INSTAGRAM_BOT_TOKEN: string;
 	TELEGRAM_USE_TEST_API: boolean;
-	DB: any; // Replace 'any' with your actual database type if possible
+	DB: any; // TODO: Replace 'any' with your actual database type if possible
 	FRONTEND_URL: string;
 	INIT_SECRET: string;
+	WEBHOOK_VERIFY_TOKEN: string;
 }
 
 interface App {
@@ -22,18 +23,17 @@ interface App {
 }
 
 interface InstagramApiResponse {
-	id: string; // This is the app-scoped ID from the API
+	id: string;
 	user_id: string;
 	username: string;
-	name?: string;
-	account_type?: string;
-	followers_count?: number;
-	follows_count?: number;
-	media_count?: number;
-	profile_picture_url?: string;
+	name?: string | null;
+	account_type?: string | null;
+	followers_count?: number | null;
+	follows_count?: number | null;
+	media_count?: number | null;
+	profile_picture_url?: string | null;
 }
 
-// Type guard for InstagramApiResponse
 function isInstagramApiResponse(response: any): response is InstagramApiResponse {
 	return (
 		typeof response === 'object' &&
@@ -43,7 +43,6 @@ function isInstagramApiResponse(response: any): response is InstagramApiResponse
 	);
 }
 
-// Create a new router
 const router = Router();
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
@@ -65,7 +64,6 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 		try {
 			const response = await instagram.getMe();
 
-			// Check if the response indicates an error
 			if (response.error) {
 				console.error('Error from Instagram API:', response.error);
 				return new Response(JSON.stringify({ error: 'Error from Instagram API' }), {
@@ -79,24 +77,27 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 					app_scoped_id: response.id,
 					user_id: response.user_id,
 					username: response.username,
-					name: response.name || null,
-					account_type: response.account_type || null,
-					profile_picture_url: response.profile_picture_url || null,
-					followers_count: response.followers_count || null,
-					follows_count: response.follows_count || null,
-					media_count: response.media_count || null,
+					name: response.name,
+					account_type: response.account_type,
+					profile_picture_url: response.profile_picture_url,
+					followers_count: response.followers_count,
+					follows_count: response.follows_count,
+					media_count: response.media_count,
 					access_token: env.INSTAGRAM_BOT_TOKEN,
 				};
 
 				const saveResult = await db.saveInstagramProfessionalUser(instagram_professional_user);
 				if (!saveResult) {
 					console.error('Failed to save Instagram user');
-				} else {
-					// After saving, fetch the user again to get the auto-incremental ID
-					instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(
-						response.id
-					);
+					return new Response(JSON.stringify({ error: 'Failed to save Instagram user' }), {
+						status: 500,
+						headers: { 'Content-Type': 'application/json' },
+					});
 				}
+
+				instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(
+					response.id
+				);
 			} else {
 				console.error('Invalid response format from Instagram API:', response);
 				return new Response(JSON.stringify({ error: 'Invalid response from Instagram API' }), {
@@ -106,21 +107,42 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 			}
 		} catch (error) {
 			console.error('Failed to get Instagram user data:', error);
-			return new Response(
-				{ error: 'Failed to get Instagram user data' },
-				{
-					status: 500,
-					headers: { 'Content-Type': 'application/json' },
-				}
-			);
+			return new Response(JSON.stringify({ error: 'Failed to get Instagram user data' }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			});
 		}
 	}
 
 	const app: App = { instagram, db, corsHeaders, isLocalhost, instagram_professional_user };
-	return await router.handle(request, app, env, ctx);
+	const response = await router.handle(request, app, env, ctx);
+
+	return new Response(response.body, {
+		status: response.status,
+		statusText: response.statusText,
+		headers: {
+			...response.headers,
+			...app.corsHeaders,
+		},
+	});
 };
 
-router.get('/', () => {
+router.get('/', (request: Request, app: App, env: Env) => {
+	const url = new URL(request.url);
+	const mode = url.searchParams.get('hub.mode');
+	const token = url.searchParams.get('hub.verify_token');
+	const challenge = url.searchParams.get('hub.challenge');
+
+	if (mode === 'subscribe' && token) {
+		if (token === env.WEBHOOK_VERIFY_TOKEN) {
+			console.log('Webhook verified');
+			return new Response(challenge || '', { status: 200 });
+		} else {
+			console.error('Webhook verification failed');
+			return new Response('Forbidden', { status: 403 });
+		}
+	}
+
 	return new Response(
 		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
 		{ status: 200 }
