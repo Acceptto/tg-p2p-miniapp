@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS instagramProfessionalUser (
-    id SERIAL PRIMARY KEY,                          -- Auto-incremented primary key
+    id integer PRIMARY KEY AUTOINCREMENT,           -- Auto-incremented primary key
+    app_scoped_id VARCHAR(255) NOT NULL UNIQUE,     -- App-scoped ID from the API
     user_id VARCHAR(255) NOT NULL UNIQUE,           -- Instagram Professional User IGID
     username VARCHAR(255) NOT NULL UNIQUE,          -- Instagram username
     name VARCHAR(255),                              -- User's name
@@ -8,7 +9,6 @@ CREATE TABLE IF NOT EXISTS instagramProfessionalUser (
     followers_count INT,                            -- Number of followers
     follows_count INT,                              -- Number of accounts followed
     media_count INT,                                -- Number of Media objects
-    secret_token VARCHAR(255) NOT NULL UNIQUE,      -- Special secret token per user
     access_token TEXT                               -- Encrypted access token for future use
 );
 
