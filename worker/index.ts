@@ -144,25 +144,25 @@ router.get('/', (request: Request, app: App, env: Env) => {
 		}
 	}
 
-	router.post('/', async (request: Request, app: App, env: Env) => {
-		try {
-			const payload = await request.json();
-			console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
-
-			// Here you would typically process the webhook payload
-			// For now, we're just logging it
-
-			return new Response('OK', { status: 200 });
-		} catch (error) {
-			console.error('Error processing webhook:', error);
-			return new Response('Error processing webhook', { status: 400 });
-		}
-	});
-
 	return new Response(
 		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
 		{ status: 200 }
 	);
+});
+
+router.post('/', async (request: Request, app: App, env: Env) => {
+	try {
+		const payload = await request.json();
+		console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
+
+		// Here you would typically process the webhook payload
+		// For now, we're just logging it
+
+		return new Response('OK', { status: 200 });
+	} catch (error) {
+		console.error('Error processing webhook:', error);
+		return new Response('Error processing webhook', { status: 400 });
+	}
 });
 
 router.options(
