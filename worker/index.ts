@@ -66,10 +66,9 @@ async function validatePayload(
 	}
 	const signatureHash = elements[1];
 
-	if (!appSecret) {
-		console.error('App secret is empty or undefined');
-		return false;
-	}
+	console.log('Received body (first 100 chars):', body.substring(0, 100));
+	console.log('Body length:', body.length);
+	console.log('App secret length:', appSecret.length);
 
 	try {
 		const expectedBuffer = await hmacSha256(body, appSecret);
