@@ -106,10 +106,13 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 			}
 		} catch (error) {
 			console.error('Failed to get Instagram user data:', error);
-			return new Response(JSON.stringify({ error: 'Failed to get Instagram user data' }), {
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return new Response(
+				{ error: 'Failed to get Instagram user data' },
+				{
+					status: 500,
+					headers: { 'Content-Type': 'application/json' },
+				}
+			);
 		}
 	}
 

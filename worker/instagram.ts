@@ -12,9 +12,9 @@ class InstagramAPI {
 		this.apiBaseUrl = `${INSTAGRAM_API_BASE_URL}/${version}/`;
 	}
 
-	async getMe(): Promise<any> {
-		const url = `${this.apiBaseUrl}me?fields=id,user_id,username,name,account_type,profile_picture_url,followers_count,follows_count,media_count&access_token=${this.token}`;
-		console.log('Here is URL: ' + url);
+	async getMe(token?: string): Promise<any> {
+		const useToken = token || this.token;
+		const url = `${this.apiBaseUrl}me?fields=id,user_id,username,name,account_type,profile_picture_url,followers_count,follows_count,media_count&access_token=${useToken}`;
 		const response = await fetch(url, {
 			method: 'GET',
 			headers: {
