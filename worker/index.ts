@@ -60,11 +60,29 @@ async function validatePayload(
 	}
 
 	const elements = signature.split('=');
+	if (elements.length !== 2) {
+		console.error('Invalid X-Hub-Signature-256 format');
+		return false;
+	}
 	const signatureHash = elements[1];
 
-	const expectedHash = hex(await hmacSha256(body, appSecret));
+	if (!appSecret) {
+		console.error('App secret is empty or undefined');
+		return false;
+	}
 
-	return signatureHash === expectedHash;
+	try {
+		const expectedBuffer = await hmacSha256(body, appSecret);
+		const expectedHash = hex(expectedBuffer);
+
+		console.log('Received signature:', signatureHash);
+		console.log('Computed signature:', expectedHash);
+
+		return signatureHash === expectedHash;
+	} catch (error) {
+		console.error('Error computing HMAC:', error);
+		return false;
+	}
 }
 
 async function fetchInstagramUser(

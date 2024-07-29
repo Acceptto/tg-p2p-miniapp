@@ -8,7 +8,6 @@ interface MessageValue {
 		mid?: string;
 		text?: string;
 	};
-	// Add other potential fields here
 }
 
 export async function processField(field: string, value: any, app: App, env: Env): Promise<void> {
