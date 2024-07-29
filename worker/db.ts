@@ -33,18 +33,15 @@ class Database {
 			.first()) as InstagramProfessionalUser | null;
 	}
 
-	async getInstagramProfessionalUserByAppScopedId(
-		appScopedId: string
+	async getInstagramProfessionalUserByIGID(
+		userId: string
 	): Promise<InstagramProfessionalUser | null> {
 		const query = `
             SELECT *
             FROM instagramProfessionalUser
-            WHERE app_scoped_id = ?
+            WHERE user_id = ?
         `;
-		return (await this.db
-			.prepare(query)
-			.bind(appScopedId)
-			.first()) as InstagramProfessionalUser | null;
+		return (await this.db.prepare(query).bind(userId).first()) as InstagramProfessionalUser | null;
 	}
 
 	async saveInstagramProfessionalUser(user: InstagramProfessionalUser): Promise<boolean> {

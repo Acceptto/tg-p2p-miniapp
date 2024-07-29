@@ -56,6 +56,7 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	};
 	const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
 
+	//potentially we can encrypt tokens before storing them
 	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
 		env.INSTAGRAM_BOT_TOKEN
 	);
@@ -142,6 +143,21 @@ router.get('/', (request: Request, app: App, env: Env) => {
 			return new Response('Forbidden', { status: 403 });
 		}
 	}
+
+	router.post('/', async (request: Request, app: App, env: Env) => {
+		try {
+			const payload = await request.json();
+			console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
+
+			// Here you would typically process the webhook payload
+			// For now, we're just logging it
+
+			return new Response('OK', { status: 200 });
+		} catch (error) {
+			console.error('Error processing webhook:', error);
+			return new Response('Error processing webhook', { status: 400 });
+		}
+	});
 
 	return new Response(
 		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
