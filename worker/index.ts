@@ -192,6 +192,7 @@ router.post('/', async (request: Request, env: Env) => {
 	const clonedRequest = request.clone();
 	const body = await clonedRequest.text();
 
+	// Use INSTAGRAM_APP_SECRET instead of INSTAGRAM_BOT_TOKEN
 	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
 		console.error('Invalid payload signature');
