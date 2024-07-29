@@ -11,10 +11,8 @@ export interface App {
 
 export interface Env {
 	INSTAGRAM_BOT_TOKEN: string;
-	TELEGRAM_USE_TEST_API: boolean;
 	DB: any; // Replace 'any' with your actual database type if possible
 	FRONTEND_URL: string;
-	INIT_SECRET: string;
 	WEBHOOK_VERIFY_TOKEN: string;
 	INSTAGRAM_APP_SECRET: string;
 }

@@ -186,13 +186,13 @@ router.get('/', (request: Request, app: App, env: Env) => {
 	);
 });
 
-router.post('/', async (request: Request, env: Env) => {
+router.post('/', async (request: Request, app: App, env: Env) => {
 	console.log('POST request received for Instagram webhook');
 
 	const clonedRequest = request.clone();
 	const body = await clonedRequest.text();
 
-	// Use INSTAGRAM_APP_SECRET instead of INSTAGRAM_BOT_TOKEN
+	console.log('INSTAGRAM_APP_SECRET is set:', !!env.INSTAGRAM_APP_SECRET);
 	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
 		console.error('Invalid payload signature');
@@ -213,11 +213,11 @@ router.post('/', async (request: Request, env: Env) => {
 
 			if (entry.changed_fields) {
 				for (const field of entry.changed_fields) {
-					await processField(field, null);
+					await processField(field, null, app, env);
 				}
 			} else if (entry.changes) {
 				for (const change of entry.changes) {
-					await processField(change.field, change.value);
+					await processField(change.field, change.value, app, env);
 				}
 			} else {
 				console.warn('Entry contains neither changed_fields nor changes');
