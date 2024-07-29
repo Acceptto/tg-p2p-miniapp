@@ -63,18 +63,28 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 
 	if (!instagram_professional_user) {
 		try {
-			const me = await instagram.getMe();
-			if (isInstagramApiResponse(me)) {
+			const response = await instagram.getMe();
+
+			// Check if the response indicates an error
+			if (response.error) {
+				console.error('Error from Instagram API:', response.error);
+				return new Response(JSON.stringify({ error: 'Error from Instagram API' }), {
+					status: 500,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+
+			if (isInstagramApiResponse(response)) {
 				instagram_professional_user = {
-					app_scoped_id: me.id,
-					user_id: me.user_id,
-					username: me.username,
-					name: me.name || null,
-					account_type: me.account_type || null,
-					profile_picture_url: me.profile_picture_url || null,
-					followers_count: me.followers_count || null,
-					follows_count: me.follows_count || null,
-					media_count: me.media_count || null,
+					app_scoped_id: response.id,
+					user_id: response.user_id,
+					username: response.username,
+					name: response.name || null,
+					account_type: response.account_type || null,
+					profile_picture_url: response.profile_picture_url || null,
+					followers_count: response.followers_count || null,
+					follows_count: response.follows_count || null,
+					media_count: response.media_count || null,
 					access_token: env.INSTAGRAM_BOT_TOKEN,
 				};
 
@@ -83,10 +93,12 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 					console.error('Failed to save Instagram user');
 				} else {
 					// After saving, fetch the user again to get the auto-incremental ID
-					instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(me.id);
+					instagram_professional_user = await db.getInstagramProfessionalUserByAppScopedId(
+						response.id
+					);
 				}
 			} else {
-				console.error('Invalid response format from Instagram API:', me);
+				console.error('Invalid response format from Instagram API:', response);
 				return new Response(JSON.stringify({ error: 'Invalid response from Instagram API' }), {
 					status: 500,
 					headers: { 'Content-Type': 'application/json' },
