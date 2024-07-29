@@ -47,4 +47,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           wrangler deploy --var FRONTEND_URL:${{ inputs.pages_url }}
-          echo "${{ secrets.INSTAGRAM_BOT_TOKEN }}" | wrangler secret put INSTAGRAM_BOT_TOKEN | wrangler secret put WEBHOOK_VERIFY_TOKEN
+          echo "${{ secrets.INSTAGRAM_BOT_TOKEN }}" | wrangler secret put INSTAGRAM_BOT_TOKEN
+          echo "${{ secrets.WEBHOOK_VERIFY_TOKEN }}" | wrangler secret put WEBHOOK_VERIFY_TOKEN
