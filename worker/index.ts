@@ -48,7 +48,12 @@ function createJsonResponse(data: any, status: number): Response {
 	});
 }
 
-import { hmacSha256, hex, escapeUnicode } from './cryptoUtils';
+// Utility to convert a string to its escaped unicode representation
+function escapeUnicode(str) {
+	return str.replace(/[^\0-~]/g, function (ch) {
+		return '\\u' + ('000' + ch.charCodeAt().toString(16)).slice(-4);
+	});
+}
 
 async function validatePayload(
 	request: Request,
@@ -66,18 +71,13 @@ async function validatePayload(
 		return false;
 	}
 
-	const signatureHash = signature.slice(7); // 7 is the length of 'sha256='
-
-	console.log('Received body (first 100 chars):', body.substring(0, 100));
-	console.log('Body length:', body.length);
-	console.log('App secret length:', appSecret.length);
-	console.log('Extracted signature hash:', signatureHash);
+	const signatureHash = signature.slice(7);
 
 	try {
-		const escapedBody = escapeUnicode(body);
-		console.log('Escaped body (first 100 chars):', escapedBody.substring(0, 100));
+		// Encode the body as an escaped unicode string
+		const escapedUnicodeBody = escapeUnicode(body);
 
-		const hmacResult = await hmacSha256(body, appSecret);
+		const hmacResult = await hmacSha256(escapedUnicodeBody, appSecret);
 		const expectedHash = hex(hmacResult);
 
 		console.log('Received signature:', signatureHash);
