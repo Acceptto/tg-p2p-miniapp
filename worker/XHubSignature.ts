@@ -12,7 +12,7 @@ export default class XHubSignature {
 		}
 		this.algorithm = algorithm;
 		this.secret = secret;
-		this.encoder = new TextEncoder();
+		this.encoder = new TextEncoder('utf-8');
 	}
 
 	private async getKey(): Promise<CryptoKey> {

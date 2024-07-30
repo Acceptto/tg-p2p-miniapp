@@ -159,7 +159,7 @@ router.get('/', (request: Request, app: App, env: Env) => {
 });
 
 router.post('/', async (request: Request, app: App, env: Env) => {
-	const body = await request.text();
+	const body = await request.arrayBuffer();
 	const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
 	const signature = request.headers.get('X-Hub-Signature-256');
 
