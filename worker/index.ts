@@ -74,8 +74,9 @@ async function validatePayload(
 		console.log('Escaped Unicode body:', escapedUnicodeBody);
 
 		const encodedSecret = encoder.encode(appSecret);
+		const encodedBody = encoder.encode(escapedUnicodeBody);
 
-		const hmacResult = await hmacSha256(escapedUnicodeBody, encodedSecret);
+		const hmacResult = await hmacSha256(encodedBody, encodedSecret);
 		const expectedHash = hex(hmacResult);
 
 		console.log('Received signature:', signatureHash);
