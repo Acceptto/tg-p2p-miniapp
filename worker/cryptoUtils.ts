@@ -4,16 +4,20 @@ export const sha256 = async (body: string): Promise<Uint8Array> => {
 	return new Uint8Array(hashBuffer);
 };
 
-export const hmacSha256 = async (data: string, secret: string): Promise<Uint8Array> => {
-	const encoder = new TextEncoder();
+// New function to convert string to raw bytes
+function stringToUint8Array(str: string): Uint8Array {
+	return new Uint8Array(str.split('').map(c => c.charCodeAt(0)));
+}
+
+export const hmacSha256 = async (data: Uint8Array, secret: string): Promise<Uint8Array> => {
 	const key = await crypto.subtle.importKey(
 		'raw',
-		encoder.encode(secret),
+		stringToUint8Array(secret),
 		{ name: 'HMAC', hash: 'SHA-256' },
 		false,
 		['sign']
 	);
-	const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
+	const signature = await crypto.subtle.sign('HMAC', key, data);
 	return new Uint8Array(signature);
 };
 

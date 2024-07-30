@@ -57,27 +57,22 @@ function escapeUnicode(str) {
 
 async function validatePayload(
 	request: Request,
-	body: string,
+	bodyBuffer: ArrayBuffer,
 	appSecret: string
 ): Promise<boolean> {
 	const signature = request.headers.get('X-Hub-Signature-256');
-	if (!signature) {
-		console.error('No X-Hub-Signature-256 found in request header');
-		return false;
-	}
-
-	if (!signature.startsWith('sha256=')) {
-		console.error('Invalid X-Hub-Signature-256 format: missing sha256= prefix');
+	if (!signature || !signature.startsWith('sha256=')) {
+		console.error('Invalid or missing X-Hub-Signature-256');
 		return false;
 	}
 
 	const signatureHash = signature.slice(7);
 
 	try {
-		// Encode the body as an escaped unicode string
-		const escapedUnicodeBody = escapeUnicode(body);
+		const bodyBytes = new Uint8Array(bodyBuffer);
+		console.log('Raw body (first 50 bytes):', hex(bodyBytes.slice(0, 50)));
 
-		const hmacResult = await hmacSha256(escapedUnicodeBody, appSecret);
+		const hmacResult = await hmacSha256(bodyBytes, appSecret);
 		const expectedHash = hex(hmacResult);
 
 		console.log('Received signature:', signatureHash);
@@ -201,17 +196,16 @@ router.get('/', (request: Request, app: App, env: Env) => {
 });
 
 router.post('/', async (request: Request, app: App, env: Env) => {
-	console.log('POST request received for Instagram webhook');
+	const bodyBuffer = await request.arrayBuffer(); // Get raw bytes
 
-	const body = await request.text(); // This gives us the raw body as a string
-
-	console.log('INSTAGRAM_APP_SECRET is set:', env.INSTAGRAM_APP_SECRET);
-	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
+	const isValid = await validatePayload(request, bodyBuffer, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
 		console.error('Invalid payload signature');
 		return createJsonResponse({ error: 'Invalid signature' }, 403);
 	}
 
+	// Process the valid payload
+	const body = new TextDecoder().decode(bodyBuffer); // Convert to string for JSON parsing
 	try {
 		const payload: InstagramWebhookPayload = JSON.parse(body);
 		console.log('Received payload:', JSON.stringify(payload, null, 2));
