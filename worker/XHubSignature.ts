@@ -43,8 +43,9 @@ export default class XHubSignature {
 		const signature = await crypto.subtle.sign('HMAC', key, data);
 		const hashArray = Array.from(new Uint8Array(signature));
 		const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-		const hashUtf8 = this.encoder.decode(signature);
-		console.log('utf8:', hashUtf8);
+		const hashUtf8 = new TextDecoder();
+		hashUtf8.decode(signature);
+		console.log('utf8:', hashUtf8.decode(signature));
 		return `${this.algorithm}=${hashHex}`;
 	}
 
