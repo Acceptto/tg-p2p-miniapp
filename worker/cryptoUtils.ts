@@ -4,11 +4,11 @@ export const sha256 = async (body: string): Promise<Uint8Array> => {
 	return new Uint8Array(hashBuffer);
 };
 
-export const hmacSha256 = async (data: string, secret: string): Promise<Uint8Array> => {
+export const hmacSha256 = async (data: string, secret: Uint8Array): Promise<Uint8Array> => {
 	const encoder = new TextEncoder();
 	const key = await crypto.subtle.importKey(
 		'raw',
-		encoder.encode(secret),
+		secret,
 		{ name: 'HMAC', hash: 'SHA-256' },
 		false,
 		['sign']
