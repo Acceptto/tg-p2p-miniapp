@@ -196,7 +196,7 @@ router.get('/', (request: Request, app: App, env: Env) => {
 });
 
 router.post('/', async (request: Request, app: App, env: Env) => {
-	const body = await request.text(); // Get the body as a string
+	const body = await request.text();
 
 	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
@@ -214,8 +214,6 @@ router.post('/', async (request: Request, app: App, env: Env) => {
 		}
 
 		for (const entry of payload.entry) {
-			console.log(`Processing entry for object ID: ${entry.id}, time: ${entry.time}`);
-
 			if (entry.changed_fields) {
 				for (const field of entry.changed_fields) {
 					await processField(field, null, app, env);

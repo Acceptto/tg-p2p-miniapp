@@ -1,5 +1,5 @@
 export const sha256 = async (body: string): Promise<Uint8Array> => {
-	const enc = new TextEncoder(); // UTF-8 encoder
+	const enc = new TextEncoder();
 	const hashBuffer = await crypto.subtle.digest('SHA-256', enc.encode(body));
 	return new Uint8Array(hashBuffer);
 };
