@@ -4,8 +4,15 @@ export const sha256 = async (body: string): Promise<Uint8Array> => {
 	return new Uint8Array(hashBuffer);
 };
 
+export const escapeUnicode = (str: string): string => {
+	return str.replace(/[\u007F-\uFFFF]/g, chr => {
+		return '\\u' + ('0000' + chr.charCodeAt(0).toString(16)).substr(-4);
+	});
+};
+
 export const hmacSha256 = async (body: string, secret: string): Promise<Uint8Array> => {
-	const enc = new TextEncoder(); // UTF-8 encoder
+	const escapedBody = escapeUnicode(body);
+	const enc = new TextEncoder();
 	const key = await crypto.subtle.importKey(
 		'raw',
 		enc.encode(secret),
@@ -13,7 +20,7 @@ export const hmacSha256 = async (body: string, secret: string): Promise<Uint8Arr
 		false,
 		['sign']
 	);
-	const signature = await crypto.subtle.sign('HMAC', key, enc.encode(body));
+	const signature = await crypto.subtle.sign('HMAC', key, enc.encode(escapedBody));
 	return new Uint8Array(signature);
 };
 

@@ -48,6 +48,8 @@ function createJsonResponse(data: any, status: number): Response {
 	});
 }
 
+import { hmacSha256, hex, escapeUnicode } from './cryptoUtils';
+
 async function validatePayload(
 	request: Request,
 	body: string,
@@ -66,10 +68,14 @@ async function validatePayload(
 
 	const signatureHash = signature.slice(7); // 7 is the length of 'sha256='
 
+	console.log('Received body (first 100 chars):', body.substring(0, 100));
+	console.log('Body length:', body.length);
+	console.log('App secret length:', appSecret.length);
+	console.log('Extracted signature hash:', signatureHash);
+
 	try {
-		// Ensure body is treated as UTF-8
-		const encoder = new TextEncoder();
-		const utf8Body = encoder.encode(body);
+		const escapedBody = escapeUnicode(body);
+		console.log('Escaped body (first 100 chars):', escapedBody.substring(0, 100));
 
 		const hmacResult = await hmacSha256(body, appSecret);
 		const expectedHash = hex(hmacResult);
@@ -188,15 +194,7 @@ router.get('/', (request: Request, app: App, env: Env) => {
 router.post('/', async (request: Request, app: App, env: Env) => {
 	console.log('POST request received for Instagram webhook');
 
-	const body = await request.text(); // This gives us a UTF-8 decoded string
-
-	// Check if the body is a valid JSON string
-	try {
-		JSON.parse(body);
-	} catch (error) {
-		console.error('Received payload is not valid JSON');
-		return createJsonResponse({ error: 'Invalid payload format' }, 400);
-	}
+	const body = await request.text(); // This gives us the raw body as a string
 
 	console.log('INSTAGRAM_APP_SECRET is set:', !!env.INSTAGRAM_APP_SECRET);
 	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
