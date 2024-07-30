@@ -49,15 +49,15 @@ function createJsonResponse(data: any, status: number): Response {
 }
 
 // Utility to convert a string to its escaped unicode representation
-function escapeUnicode(str) {
+function escapeUnicode(str: string): string {
 	return str.replace(/[^\0-~]/g, function (ch) {
-		return '\\u' + ('000' + ch.charCodeAt().toString(16)).slice(-4);
+		return '\\u' + ('000' + ch.charCodeAt(0).toString(16)).slice(-4);
 	});
 }
 
 async function validatePayload(
 	request: Request,
-	bodyBuffer: ArrayBuffer,
+	body: string,
 	appSecret: string
 ): Promise<boolean> {
 	const signature = request.headers.get('X-Hub-Signature-256');
@@ -69,10 +69,10 @@ async function validatePayload(
 	const signatureHash = signature.slice(7);
 
 	try {
-		const bodyBytes = new Uint8Array(bodyBuffer);
-		console.log('Raw body (first 50 bytes):', hex(bodyBytes.slice(0, 50)));
+		const escapedUnicodeBody = escapeUnicode(body);
+		console.log('Escaped Unicode body:', escapedUnicodeBody);
 
-		const hmacResult = await hmacSha256(bodyBytes, appSecret);
+		const hmacResult = await hmacSha256(escapedUnicodeBody, appSecret);
 		const expectedHash = hex(hmacResult);
 
 		console.log('Received signature:', signatureHash);
@@ -196,16 +196,14 @@ router.get('/', (request: Request, app: App, env: Env) => {
 });
 
 router.post('/', async (request: Request, app: App, env: Env) => {
-	const bodyBuffer = await request.arrayBuffer(); // Get raw bytes
+	const body = await request.text(); // Get the body as a string
 
-	const isValid = await validatePayload(request, bodyBuffer, env.INSTAGRAM_APP_SECRET);
+	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
 		console.error('Invalid payload signature');
 		return createJsonResponse({ error: 'Invalid signature' }, 403);
 	}
 
-	// Process the valid payload
-	const body = new TextDecoder().decode(bodyBuffer); // Convert to string for JSON parsing
 	try {
 		const payload: InstagramWebhookPayload = JSON.parse(body);
 		console.log('Received payload:', JSON.stringify(payload, null, 2));
