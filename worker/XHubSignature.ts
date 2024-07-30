@@ -10,7 +10,7 @@ export default class XHubSignature {
 		if (!secret) {
 			throw new Error('Secret is required');
 		}
-		this.algorithm = algorithm;
+		this.algorithm = algorithm.toUpperCase();
 		this.secret = secret;
 		this.encoder = new TextEncoder();
 	}
@@ -20,10 +20,21 @@ export default class XHubSignature {
 		return await crypto.subtle.importKey(
 			'raw',
 			keyData,
-			{ name: 'HMAC', hash: { name: this.algorithm.toUpperCase() } },
+			{ name: 'HMAC', hash: { name: this.getHashAlgorithm() } },
 			false,
 			['sign']
 		);
+	}
+
+	private getHashAlgorithm(): string {
+		switch (this.algorithm) {
+			case 'SHA256':
+				return 'SHA-256';
+			case 'SHA1':
+				return 'SHA-1';
+			default:
+				throw new Error(`Unsupported algorithm: ${this.algorithm}`);
+		}
 	}
 
 	async sign(requestBody: string): Promise<string> {
@@ -32,7 +43,7 @@ export default class XHubSignature {
 		const signature = await crypto.subtle.sign('HMAC', key, data);
 		const hashArray = Array.from(new Uint8Array(signature));
 		const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-		return `${this.algorithm}=${hashHex}`;
+		return `${this.algorithm.toLowerCase()}=${hashHex}`;
 	}
 
 	async verify(expectedSignature: string, requestBody: string): Promise<boolean> {
