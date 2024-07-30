@@ -143,6 +143,14 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 		'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 		'Access-Control-Max-Age': '86400',
 	};
+	const securityHeaders = {
+		'Content-Security-Policy':
+			"default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self';",
+		'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+		'X-Content-Type-Options': 'nosniff',
+		'Referrer-Policy': 'no-referrer-when-downgrade',
+	};
+
 	const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
 
 	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
@@ -163,8 +171,9 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 		status: response.status,
 		statusText: response.statusText,
 		headers: {
-			...response.headers,
-			...app.corsHeaders,
+			...securityHeaders, // Add security headers first
+			...response.headers, // Include headers from the original response
+			...corsHeaders, // Add CORS headers at the end
 		},
 	});
 };
@@ -196,7 +205,7 @@ router.post('/', async (request: Request, app: App, env: Env) => {
 
 	const body = await request.text(); // This gives us the raw body as a string
 
-	console.log('INSTAGRAM_APP_SECRET is set:', !!env.INSTAGRAM_APP_SECRET);
+	console.log('INSTAGRAM_APP_SECRET is set:', env.INSTAGRAM_APP_SECRET);
 	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
 	if (!isValid) {
 		console.error('Invalid payload signature');
