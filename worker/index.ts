@@ -3,7 +3,7 @@ import { Instagram } from './instagram';
 import { Database, InstagramProfessionalUser } from './db';
 import { processField } from './webhookMessageProcessor';
 import { App, Env } from './types';
-import { hmacSha256, hex } from './cryptoUtils';
+import XHubSignature from './XHubSignature';
 
 interface InstagramApiResponse {
 	id: string;
@@ -46,47 +46,6 @@ function createJsonResponse(data: any, status: number): Response {
 		status,
 		headers: { 'Content-Type': 'application/json' },
 	});
-}
-
-// Utility to convert a string to its escaped unicode representation
-function escapeUnicode(str: string): string {
-	return str.replace(/[^\0-~]/g, function (ch) {
-		return '\\u' + ('000' + ch.charCodeAt(0).toString(16)).slice(-4);
-	});
-}
-
-async function validatePayload(
-	request: Request,
-	body: string,
-	appSecret: string
-): Promise<boolean> {
-	const signature = request.headers.get('X-Hub-Signature-256');
-	if (!signature || !signature.startsWith('sha256=')) {
-		console.error('Invalid or missing X-Hub-Signature-256');
-		return false;
-	}
-
-	const signatureHash = signature.slice(7);
-
-	try {
-		const encoder = new TextEncoder();
-		const escapedUnicodeBody = escapeUnicode(body);
-		console.log('Escaped Unicode body:', escapedUnicodeBody);
-
-		const encodedSecret = encoder.encode(appSecret);
-		const encodedBody = encoder.encode(escapedUnicodeBody);
-
-		const hmacResult = await hmacSha256(encodedBody, encodedSecret);
-		const expectedHash = hex(hmacResult);
-
-		console.log('Received signature:', signatureHash);
-		console.log('Computed signature:', expectedHash);
-
-		return signatureHash === expectedHash;
-	} catch (error) {
-		console.error('Error computing HMAC:', error);
-		return false;
-	}
 }
 
 async function fetchInstagramUser(
@@ -170,9 +129,9 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 		status: response.status,
 		statusText: response.statusText,
 		headers: {
-			...securityHeaders, // Add security headers first
-			...response.headers, // Include headers from the original response
-			...corsHeaders, // Add CORS headers at the end
+			...securityHeaders,
+			...response.headers,
+			...corsHeaders,
 		},
 	});
 };
@@ -201,8 +160,15 @@ router.get('/', (request: Request, app: App, env: Env) => {
 
 router.post('/', async (request: Request, app: App, env: Env) => {
 	const body = await request.text();
+	const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
+	const signature = request.headers.get('X-Hub-Signature-256');
 
-	const isValid = await validatePayload(request, body, env.INSTAGRAM_APP_SECRET);
+	if (!signature) {
+		console.error('Missing X-Hub-Signature-256');
+		return createJsonResponse({ error: 'Missing signature' }, 400);
+	}
+
+	const isValid = await xhub.verify(signature, body);
 	if (!isValid) {
 		console.error('Invalid payload signature');
 		return createJsonResponse({ error: 'Invalid signature' }, 403);
