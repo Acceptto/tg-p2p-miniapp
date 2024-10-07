@@ -4,6 +4,7 @@ import { Database, InstagramProfessionalUser } from './db';
 import { processField } from './webhookMessageProcessor';
 import { App, Env } from './types';
 import XHubSignature from './XHubSignature';
+import { ExecutionContext } from '@cloudflare/workers-types';
 
 interface InstagramApiResponse {
 	id: string;
@@ -56,8 +57,6 @@ async function fetchInstagramUser(
 	try {
 		const response = await instagram.getMe();
 
-		console.log('Instagram API response:', JSON.stringify(response, null, 2));
-
 		if (response.error) {
 			console.error('Error from Instagram API:', response.error);
 			return null;
@@ -76,8 +75,6 @@ async function fetchInstagramUser(
 				media_count: response.media_count || null,
 				access_token: token,
 			};
-
-			console.log('Prepared user data:', JSON.stringify(user, null, 2));
 
 			const saveResult = await db.saveInstagramProfessionalUser(user);
 			if (!saveResult) {
@@ -102,7 +99,7 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	const corsHeaders = {
 		'Access-Control-Allow-Origin': env.FRONTEND_URL,
 		'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-		'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+		'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Hub-Signature-256',
 		'Access-Control-Max-Age': '86400',
 	};
 	const securityHeaders = {
@@ -114,6 +111,29 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	};
 
 	const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
+
+	// Verify signature for all requests except OPTIONS
+	if (request.method !== 'OPTIONS') {
+		const signature = request.headers.get('X-Hub-Signature-256');
+		if (!signature) {
+			return createJsonResponse({ error: 'Missing signature' }, 400);
+		}
+
+		const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
+		const body = await request.text();
+		const isValid = await xhub.verify(signature, body);
+
+		if (!isValid) {
+			return createJsonResponse({ error: 'Invalid signature' }, 403);
+		}
+
+		// Clone the request with the parsed body for further processing
+		request = new Request(request.url, {
+			method: request.method,
+			headers: request.headers,
+			body: body,
+		});
+	}
 
 	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
 		env.INSTAGRAM_BOT_TOKEN
@@ -148,10 +168,8 @@ router.get('/', (request: Request, app: App, env: Env) => {
 
 	if (mode === 'subscribe' && token) {
 		if (token === env.WEBHOOK_VERIFY_TOKEN) {
-			console.log('Webhook verified');
 			return new Response(challenge || '', { status: 200 });
 		} else {
-			console.error('Webhook verification failed');
 			return createJsonResponse({ error: 'Forbidden' }, 403);
 		}
 	}
@@ -163,28 +181,8 @@ router.get('/', (request: Request, app: App, env: Env) => {
 });
 
 router.post('/', async (request: Request, app: App, env: Env) => {
-	const body = await request.text();
-	const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
-	const signature = request.headers.get('X-Hub-Signature-256');
-
-	if (!signature) {
-		console.error('Missing X-Hub-Signature-256');
-		return createJsonResponse({ error: 'Missing signature' }, 400);
-	}
-
 	try {
-		console.log('Received signature:', signature);
-		console.log('Payload:', body);
-		console.log('INSTAGRAM_APP_SECRET (first 4 chars):', env.INSTAGRAM_APP_SECRET.slice(0, 4));
-
-		const isValid = await xhub.verify(signature, body);
-		if (!isValid) {
-			console.error('Invalid payload signature');
-			return createJsonResponse({ error: 'Invalid signature' }, 403);
-		}
-
-		const payload: InstagramWebhookPayload = JSON.parse(body);
-		console.log('Processed payload:', JSON.stringify(payload, null, 2));
+		const payload: InstagramWebhookPayload = await request.json();
 
 		// Process the webhook payload
 		for (const entry of payload.entry) {
