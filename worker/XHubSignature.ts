@@ -1,7 +1,6 @@
 export default class XHubSignature {
 	private algorithm: string;
 	private secret: string;
-	private encoder: TextEncoder;
 
 	constructor(algorithm: string, secret: string) {
 		if (!algorithm) {
@@ -12,48 +11,34 @@ export default class XHubSignature {
 		}
 		this.algorithm = algorithm;
 		this.secret = secret;
-		this.encoder = new TextEncoder();
 	}
 
 	private async getKey(): Promise<CryptoKey> {
-		const keyData = this.encoder.encode(this.secret);
+		const encoder = new TextEncoder();
+		const keyData = encoder.encode(this.secret);
 		return await crypto.subtle.importKey(
 			'raw',
 			keyData,
-			{ name: 'HMAC', hash: { name: this.getHashAlgorithm() } },
+			{ name: 'HMAC', hash: { name: this.algorithm.toUpperCase() } },
 			false,
 			['sign']
 		);
 	}
 
-	private getHashAlgorithm(): string {
-		switch (this.algorithm) {
-			case 'sha256':
-				return 'SHA-256';
-			case 'sha1':
-				return 'SHA-1';
-			default:
-				throw new Error(`Unsupported algorithm: ${this.algorithm}`);
-		}
-	}
-
-	async sign(requestBody: string): Promise<string> {
+	async sign(payload: string): Promise<string> {
 		const key = await this.getKey();
-		const data = this.encoder.encode(requestBody);
-		const signature = await crypto.subtle.sign('HMAC', key, data);
+		const encoder = new TextEncoder();
+		const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
 		const hashArray = Array.from(new Uint8Array(signature));
 		const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-		const hashUtf8 = new TextDecoder();
-		hashUtf8.decode(signature);
-		console.log('utf8:', hashUtf8.decode(signature));
 		return `${this.algorithm}=${hashHex}`;
 	}
 
-	async verify(expectedSignature: string, requestBody: string): Promise<boolean> {
-		const actualSignature = await this.sign(requestBody);
-		console.log(actualSignature);
-		console.log(expectedSignature);
-		return this.timingSafeEqual(expectedSignature, actualSignature);
+	async verify(expectedSignature: string, payload: string): Promise<boolean> {
+		const calculatedSignature = await this.sign(payload);
+		console.log('Expected signature:', expectedSignature);
+		console.log('Calculated signature:', calculatedSignature);
+		return this.timingSafeEqual(expectedSignature, calculatedSignature);
 	}
 
 	private timingSafeEqual(a: string, b: string): boolean {

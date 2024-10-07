@@ -169,6 +169,8 @@ router.post('/', async (request: Request, app: App, env: Env) => {
 	}
 
 	try {
+		console.log('Received signature:', signature);
+		console.log('Payload:', body);
 		const isValid = await xhub.verify(signature, body);
 		if (!isValid) {
 			console.error('Invalid payload signature');
