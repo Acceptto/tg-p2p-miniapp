@@ -13,25 +13,32 @@ export default class XHubSignature {
 		this.secret = secret;
 	}
 
-	private async getKey(): Promise<CryptoKey> {
+	private async calculateHmacSha256(message: string): Promise<ArrayBuffer> {
 		const encoder = new TextEncoder();
 		const keyData = encoder.encode(this.secret);
-		return await crypto.subtle.importKey(
+		const messageData = encoder.encode(message);
+
+		const cryptoKey = await crypto.subtle.importKey(
 			'raw',
 			keyData,
-			{ name: 'HMAC', hash: { name: this.algorithm.toUpperCase() } },
+			{ name: 'HMAC', hash: 'SHA-256' },
 			false,
 			['sign']
 		);
+
+		return crypto.subtle.sign('HMAC', cryptoKey, messageData);
+	}
+
+	private bufferToHex(buffer: ArrayBuffer): string {
+		return Array.from(new Uint8Array(buffer))
+			.map(b => b.toString(16).padStart(2, '0'))
+			.join('');
 	}
 
 	async sign(payload: string): Promise<string> {
-		const key = await this.getKey();
-		const encoder = new TextEncoder();
-		const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
-		const hashArray = Array.from(new Uint8Array(signature));
-		const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-		return `${this.algorithm}=${hashHex}`;
+		const signatureBuffer = await this.calculateHmacSha256(payload);
+		const signatureHex = this.bufferToHex(signatureBuffer);
+		return `${this.algorithm}=${signatureHex}`;
 	}
 
 	async verify(expectedSignature: string, payload: string): Promise<boolean> {

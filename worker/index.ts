@@ -182,28 +182,18 @@ router.post('/', async (request: Request, app: App, env: Env) => {
 		}
 
 		const payload: InstagramWebhookPayload = JSON.parse(body);
-		console.log('Received payload:', JSON.stringify(payload, null, 2));
+		console.log('Processed payload:', JSON.stringify(payload, null, 2));
 
-		if (payload.object !== 'instagram') {
-			console.error('Received non-Instagram object:', payload.object);
-			return createJsonResponse({ error: 'Unsupported object type' }, 400);
-		}
-
+		// Process the webhook payload
 		for (const entry of payload.entry) {
-			if (entry.changed_fields) {
-				for (const field of entry.changed_fields) {
-					await processField(field, null, app, env);
-				}
-			} else if (entry.changes) {
+			if (entry.changes) {
 				for (const change of entry.changes) {
 					await processField(change.field, change.value, app, env);
 				}
-			} else {
-				console.warn('Entry contains neither changed_fields nor changes');
 			}
 		}
 
-		return createJsonResponse({ message: 'OK' }, 200);
+		return createJsonResponse({ message: 'Webhook processed successfully' }, 200);
 	} catch (error) {
 		console.error('Error processing Instagram webhook:', error);
 		return createJsonResponse({ error: 'Error processing webhook' }, 400);
