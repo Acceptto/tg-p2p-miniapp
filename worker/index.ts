@@ -56,6 +56,8 @@ async function fetchInstagramUser(
 	try {
 		const response = await instagram.getMe();
 
+		console.log('Instagram API response:', JSON.stringify(response, null, 2));
+
 		if (response.error) {
 			console.error('Error from Instagram API:', response.error);
 			return null;
@@ -66,14 +68,16 @@ async function fetchInstagramUser(
 				app_scoped_id: response.id,
 				user_id: response.user_id,
 				username: response.username,
-				name: response.name,
-				account_type: response.account_type,
-				profile_picture_url: response.profile_picture_url,
-				followers_count: response.followers_count,
-				follows_count: response.follows_count,
-				media_count: response.media_count,
+				name: response.name || null,
+				account_type: response.account_type || null,
+				profile_picture_url: response.profile_picture_url || null,
+				followers_count: response.followers_count || null,
+				follows_count: response.follows_count || null,
+				media_count: response.media_count || null,
 				access_token: token,
 			};
+
+			console.log('Prepared user data:', JSON.stringify(user, null, 2));
 
 			const saveResult = await db.saveInstagramProfessionalUser(user);
 			if (!saveResult) {
@@ -81,7 +85,7 @@ async function fetchInstagramUser(
 				return null;
 			}
 
-			return await db.getInstagramProfessionalUserByIGID(response.user_id);
+			return user;
 		} else {
 			console.error('Invalid response format from Instagram API:', response);
 			return null;
