@@ -175,6 +175,8 @@ router.post('/', async (request: Request, app: App, env: Env) => {
 	try {
 		console.log('Received signature:', signature);
 		console.log('Payload:', body);
+		console.log('INSTAGRAM_APP_SECRET (first 4 chars):', env.INSTAGRAM_APP_SECRET.slice(0, 4));
+
 		const isValid = await xhub.verify(signature, body);
 		if (!isValid) {
 			console.error('Invalid payload signature');
