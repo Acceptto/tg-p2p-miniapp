@@ -19,10 +19,8 @@ export async function processField(field: string, value: any, app: App, env: Env
 				await processMessage(value, app, env);
 			} else {
 				console.log('Message field changed, but no value provided');
-				// You might want to fetch the latest messages here
 			}
 			break;
-		// Add more cases for other fields you want to handle
 		default:
 			console.log(`Unhandled field: ${field}`);
 	}
@@ -44,8 +42,9 @@ export async function processMessage(value: MessageValue, app: App, env: Env): P
 		);
 		console.log(`Message content: ${message.text}`);
 
-		switch (message.text.toLowerCase()) {
+		switch (message.text.toLowerCase().trim()) {
 			case 'view_group_buys':
+				console.log('Matched "view_group_buys" command');
 				await handleTravelMessage(sender.id, app, env);
 				break;
 			case 'weather':
@@ -59,11 +58,11 @@ export async function processMessage(value: MessageValue, app: App, env: Env): P
 		}
 	} else {
 		console.warn('Received incomplete message data:', value);
-		// Handle incomplete data case
 	}
 }
 
 async function handleTravelMessage(igId: string, app: App, env: Env): Promise<void> {
+	console.log('Entering handleTravelMessage for igId:', igId);
 	const messageTitle = 'Check out our latest group buys!';
 	const imageUrl = 'https://placehold.co/600x400';
 	const messageSubtitle = 'Great deals on travel packages';
@@ -72,30 +71,38 @@ async function handleTravelMessage(igId: string, app: App, env: Env): Promise<vo
 	const secondButtonTitle = 'Learn More';
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
 
-	await instagram.sendTemplate(
-		igId,
-		messageTitle,
-		imageUrl,
-		messageSubtitle,
-		websiteUrl,
-		firstButtonTitle,
-		secondButtonTitle,
-		app,
-		env
-	);
+	try {
+		console.log('Sending template message...');
+		const result = await instagram.sendTemplate(
+			igId,
+			messageTitle,
+			imageUrl,
+			messageSubtitle,
+			websiteUrl,
+			firstButtonTitle,
+			secondButtonTitle,
+			app,
+			env
+		);
+		console.log('Template message sent successfully:', result);
+	} catch (error) {
+		console.error('Error sending template message:', error);
+	}
 }
 
 async function handleWeatherMessage(senderId: string, app: App, env: Env): Promise<void> {
-	// Implement weather-specific logic here
+	console.log('Handling weather message for senderId:', senderId);
 	await sendReply(senderId, "Here's today's weather forecast...", app, env);
 }
 
 async function sendHelpMessage(senderId: string, app: App, env: Env): Promise<void> {
-	const helpMessage = "Available commands: 'travel', 'weather', 'help'";
+	console.log('Sending help message to senderId:', senderId);
+	const helpMessage = "Available commands: 'view_group_buys', 'weather', 'help'";
 	await sendReply(senderId, helpMessage, app, env);
 }
 
 async function sendDefaultReply(senderId: string, app: App, env: Env): Promise<void> {
+	console.log('Sending default reply to senderId:', senderId);
 	await sendReply(
 		senderId,
 		"I didn't understand that. Type 'help' for available commands.",
@@ -105,7 +112,12 @@ async function sendDefaultReply(senderId: string, app: App, env: Env): Promise<v
 }
 
 async function sendReply(senderId: string, message: string, app: App, env: Env): Promise<void> {
-	// Implement your message sending logic here
 	console.log(`Sending reply to ${senderId}: ${message}`);
-	// Use app and env as needed for sending the reply
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
+	try {
+		const result = await instagram.sendMessage(senderId, message);
+		console.log('Reply sent successfully:', result);
+	} catch (error) {
+		console.error('Error sending reply:', error);
+	}
 }

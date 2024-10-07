@@ -9,20 +9,28 @@ class InstagramAPI {
 
 	constructor(token: string, useTestApi: boolean = false) {
 		this.token = token;
-		const version = 'v20.0';
+		const version = 'v21.0';
 		this.apiBaseUrl = `${INSTAGRAM_API_BASE_URL}/${version}/`;
 	}
 
 	async getMe(token?: string): Promise<any> {
 		const useToken = token || this.token;
 		const url = `${this.apiBaseUrl}me?fields=id,user_id,username,name,account_type,profile_picture_url,followers_count,follows_count,media_count&access_token=${useToken}`;
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		return response.json();
+		console.log('Fetching user data from Instagram API:', url);
+		try {
+			const response = await fetch(url, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+			const data = await response.json();
+			console.log('Instagram API response for getMe:', data);
+			return data;
+		} catch (error) {
+			console.error('Error fetching user data from Instagram API:', error);
+			throw error;
+		}
 	}
 
 	async sendTemplate(
@@ -36,6 +44,7 @@ class InstagramAPI {
 		app: App,
 		env: Env
 	): Promise<any> {
+		console.log('Preparing to send template message to igId:', igId);
 		const url = `${this.apiBaseUrl}${igId}/messages?access_token=${this.token}`;
 		const body = {
 			recipient: {
@@ -73,14 +82,57 @@ class InstagramAPI {
 				},
 			},
 		};
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
+		console.log('Sending request to Instagram API:', url);
+		console.log('Request body:', JSON.stringify(body, null, 2));
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			});
+			const responseData = await response.json();
+			console.log('Instagram API response:', responseData);
+			if (!response.ok) {
+				throw new Error(`Instagram API error: ${response.status} ${response.statusText}`);
+			}
+			return responseData;
+		} catch (error) {
+			console.error('Error calling Instagram API:', error);
+			throw error;
+		}
+	}
+
+	async sendMessage(igId: string, text: string): Promise<any> {
+		console.log(`Sending message to ${igId}: ${text}`);
+		const url = `${this.apiBaseUrl}${igId}/messages?access_token=${this.token}`;
+		const body = {
+			recipient: {
+				id: igId,
 			},
-			body: JSON.stringify(body),
-		});
-		return response.json();
+			message: {
+				text: text,
+			},
+		};
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			});
+			const responseData = await response.json();
+			console.log('Instagram API response for sendMessage:', responseData);
+			if (!response.ok) {
+				throw new Error(`Instagram API error: ${response.status} ${response.statusText}`);
+			}
+			return responseData;
+		} catch (error) {
+			console.error('Error sending message via Instagram API:', error);
+			throw error;
+		}
 	}
 }
 
