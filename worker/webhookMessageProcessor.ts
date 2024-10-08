@@ -101,9 +101,10 @@ async function handleMessageText(
 async function handleTravelMessage(igId: string, igsId: string, app: App, env: Env): Promise<void> {
 	console.log('Entering handleTravelMessage for igId:', igId, 'and igsId:', igsId);
 	const messageTitle = 'Check out our latest group buys!';
-	const imageUrl = 'https://unsplash.com/photos/brown-wooden-road-sign-during-daytime-wGu1pzDSm3g';
+	const imageUrl =
+		'8XhZk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-amalfi-coast-newman-family-NOCHCDBAGS0223-e03f54b7c9c040c4b74823626ec9bdc9.jpg';
 	const messageSubtitle = 'Great deals on travel packages';
-	const websiteUrl = 'https://example.com/group-buys';
+	const websiteUrl = 'https://google.com';
 	const firstButtonTitle = 'View Deals';
 	const secondButtonTitle = 'Learn More';
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);

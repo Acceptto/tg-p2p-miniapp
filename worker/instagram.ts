@@ -78,6 +78,90 @@ class InstagramAPI {
 									},
 								],
 							},
+							{
+								title: messageTitle,
+								image_url: imageUrl,
+								subtitle: messageSubtitle,
+								default_action: {
+									type: 'web_url',
+									url: websiteUrl,
+								},
+								buttons: [
+									{
+										type: 'web_url',
+										url: websiteUrl,
+										title: firstButtonTitle,
+									},
+									{
+										type: 'postback',
+										title: secondButtonTitle,
+										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
+									},
+								],
+							},
+							{
+								title: messageTitle,
+								image_url: imageUrl,
+								subtitle: messageSubtitle,
+								default_action: {
+									type: 'web_url',
+									url: websiteUrl,
+								},
+								buttons: [
+									{
+										type: 'web_url',
+										url: websiteUrl,
+										title: firstButtonTitle,
+									},
+									{
+										type: 'postback',
+										title: secondButtonTitle,
+										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
+									},
+								],
+							},
+							{
+								title: messageTitle,
+								image_url: imageUrl,
+								subtitle: messageSubtitle,
+								default_action: {
+									type: 'web_url',
+									url: websiteUrl,
+								},
+								buttons: [
+									{
+										type: 'web_url',
+										url: websiteUrl,
+										title: firstButtonTitle,
+									},
+									{
+										type: 'postback',
+										title: secondButtonTitle,
+										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
+									},
+								],
+							},
+							{
+								title: messageTitle,
+								image_url: imageUrl,
+								subtitle: messageSubtitle,
+								default_action: {
+									type: 'web_url',
+									url: websiteUrl,
+								},
+								buttons: [
+									{
+										type: 'web_url',
+										url: websiteUrl,
+										title: firstButtonTitle,
+									},
+									{
+										type: 'postback',
+										title: secondButtonTitle,
+										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
+									},
+								],
+							},
 						],
 					},
 				},
