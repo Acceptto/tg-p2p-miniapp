@@ -70,7 +70,7 @@ async function handlePostback(
 	console.log(`Handling postback: ${postback.title} with payload: ${postback.payload}`);
 
 	switch (postback.payload.toLowerCase().trim()) {
-		case 'view_group_buys':
+		case 'learn_group_buying':
 			console.log('Matched "view_group_buys" payload from ice breaker');
 			await handleTravelMessage(senderId, recipientId, app, env);
 			break;
@@ -101,7 +101,7 @@ async function handleMessageText(
 async function handleTravelMessage(igId: string, igsId: string, app: App, env: Env): Promise<void> {
 	console.log('Entering handleTravelMessage for igId:', igId, 'and igsId:', igsId);
 	const messageTitle = 'Check out our latest group buys!';
-	const imageUrl = 'https://placehold.co/600x400';
+	const imageUrl = 'https://unsplash.com/photos/brown-wooden-road-sign-during-daytime-wGu1pzDSm3g';
 	const messageSubtitle = 'Great deals on travel packages';
 	const websiteUrl = 'https://example.com/group-buys';
 	const firstButtonTitle = 'View Deals';
