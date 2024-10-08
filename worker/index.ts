@@ -6,40 +6,6 @@ import { App, Env } from './types';
 import XHubSignature from './XHubSignature';
 import { ExecutionContext } from '@cloudflare/workers-types';
 
-interface InstagramApiResponse {
-	id: string;
-	user_id: string;
-	username: string;
-	name?: string | null;
-	account_type?: string | null;
-	followers_count?: number | null;
-	follows_count?: number | null;
-	media_count?: number | null;
-	profile_picture_url?: string | null;
-}
-
-interface InstagramWebhookPayload {
-	object: string;
-	entry: Array<{
-		id: string;
-		time: number;
-		changed_fields?: string[];
-		changes?: Array<{
-			field: string;
-			value: any;
-		}>;
-	}>;
-}
-
-function isInstagramApiResponse(response: any): response is InstagramApiResponse {
-	return (
-		typeof response === 'object' &&
-		typeof response.id === 'string' &&
-		typeof response.user_id === 'string' &&
-		typeof response.username === 'string'
-	);
-}
-
 const router = Router();
 
 function createJsonResponse(data: any, status: number): Response {
@@ -94,6 +60,7 @@ async function fetchInstagramUser(
 }
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
+	console.log('Received request:', request.method, request.url);
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
 	const db = new Database(env.DB);
 	const corsHeaders = {
@@ -116,23 +83,46 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	if (request.method !== 'OPTIONS') {
 		const signature = request.headers.get('X-Hub-Signature-256');
 		if (!signature) {
+			console.log('Missing signature');
 			return createJsonResponse({ error: 'Missing signature' }, 400);
 		}
 
 		const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
 		const body = await request.text();
+		console.log('Request body:', body);
+
 		const isValid = await xhub.verify(signature, body);
 
 		if (!isValid) {
+			console.log('Invalid signature');
 			return createJsonResponse({ error: 'Invalid signature' }, 403);
 		}
 
-		// Clone the request with the parsed body for further processing
-		request = new Request(request.url, {
-			method: request.method,
-			headers: request.headers,
-			body: body,
-		});
+		console.log('Signature validation successful');
+
+		try {
+			const jsonBody = JSON.parse(body);
+			console.log('Parsed JSON body:', JSON.stringify(jsonBody, null, 2));
+
+			// Process the webhook payload
+			if (jsonBody.object === 'instagram' && Array.isArray(jsonBody.entry)) {
+				for (const entry of jsonBody.entry) {
+					if (entry.changes) {
+						for (const change of entry.changes) {
+							await processField(change.field, change.value, { instagram, db } as App, env);
+						}
+					}
+				}
+				console.log('Webhook processed successfully');
+				return createJsonResponse({ message: 'Webhook processed successfully' }, 200);
+			} else {
+				console.log('Unexpected webhook payload structure');
+				return createJsonResponse({ error: 'Unexpected webhook payload structure' }, 400);
+			}
+		} catch (error) {
+			console.error('Error processing webhook payload:', error);
+			return createJsonResponse({ error: 'Error processing webhook' }, 400);
+		}
 	}
 
 	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
@@ -180,26 +170,6 @@ router.get('/', (request: Request, app: App, env: Env) => {
 	);
 });
 
-router.post('/', async (request: Request, app: App, env: Env) => {
-	try {
-		const payload: InstagramWebhookPayload = await request.json();
-
-		// Process the webhook payload
-		for (const entry of payload.entry) {
-			if (entry.changes) {
-				for (const change of entry.changes) {
-					await processField(change.field, change.value, app, env);
-				}
-			}
-		}
-
-		return createJsonResponse({ message: 'Webhook processed successfully' }, 200);
-	} catch (error) {
-		console.error('Error processing Instagram webhook:', error);
-		return createJsonResponse({ error: 'Error processing webhook' }, 400);
-	}
-});
-
 router.options(
 	'/miniApp/*',
 	(request: Request, app: App, env: Env) =>
@@ -216,3 +186,23 @@ router.all('*', () => createJsonResponse({ error: 'Not found' }, 404));
 export default {
 	fetch: handle,
 };
+
+// Helper function to type-check the Instagram API response
+function isInstagramApiResponse(response: any): response is {
+	id: string;
+	user_id: string;
+	username: string;
+	name?: string;
+	account_type?: string;
+	profile_picture_url?: string;
+	followers_count?: number;
+	follows_count?: number;
+	media_count?: number;
+} {
+	return (
+		typeof response === 'object' &&
+		typeof response.id === 'string' &&
+		typeof response.user_id === 'string' &&
+		typeof response.username === 'string'
+	);
+}

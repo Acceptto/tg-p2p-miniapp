@@ -4,7 +4,7 @@ FRONTEND_URL=https://aaaaaaaa-0000.euw.devtunnels.ms
 curl -i -X POST \
   "https://graph.instagram.com/v21.0/17841464935321098/subscribed_apps
   ?subscribed_fields=messages
-  &access_token=IGQWRQb1lZAeGdDNW82bnl6SDc0SWtLaWVldnNlWmdBbHpPYVJxcGZALVXVHUWJSWDc1cl9HTEFJWVRWRUV2bWtHRDVDSlM3eE5OdW94blVBNzVGRndDWmNMaVZAKQlBLd0lHUXZA6ZAS0wT1BUQnZAjNUpoWFgyNkExejAZD"
+  &access_token=IGQWRNc1FPSDNMR09senc1WE5DS0s3aF9Gell2enlPNGhFUXZAldjJ3V3RBdFJMZAElMTDVrdExLS3JfX3pGZAmJmcmkyaFpwbGZADdUhXNlBMRE1ORWRBbl9TU19LOENlWFRaLXd4bE42aTI3ekJkRDlzZAEpKdFJ4QzQZD"
 
 
 
