@@ -71,7 +71,7 @@ async function handlePostback(
 
 	switch (postback.payload.toLowerCase().trim()) {
 		case 'learn_group_buying':
-			console.log('Matched "view_group_buys" payload from ice breaker');
+			console.log('Matched "learn_group_buying" payload from ice breaker');
 			await handleTravelMessage(senderId, recipientId, app, env);
 			break;
 		default:
@@ -100,13 +100,48 @@ async function handleMessageText(
 
 async function handleTravelMessage(igId: string, igsId: string, app: App, env: Env): Promise<void> {
 	console.log('Entering handleTravelMessage for igId:', igId, 'and igsId:', igsId);
-	const messageTitle = 'Check out our latest group buys!';
-	const imageUrl =
-		'https://www.travelandleisure.com/thmb/3ArBlvVnMviBqI7CKkZPRb8XhZk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-amalfi-coast-newman-family-NOCHCDBAGS0223-e03f54b7c9c040c4b74823626ec9bdc9.jpg';
-	const messageSubtitle = 'Great deals on travel packages';
-	const websiteUrl = 'https://google.com';
-	const firstButtonTitle = 'View Deals';
-	const secondButtonTitle = 'Learn More';
+	const titles = [
+		'Amalfi Coast Adventure',
+		'Tokyo City Exploration',
+		'African Safari Experience',
+		'Caribbean Cruise Getaway',
+		'Northern Lights in Iceland',
+	];
+	const imageUrls = [
+		'https://upload.wikimedia.org/wikipedia/commons/0/0d/Positano-Amalfi_Coast-Italy.jpg',
+		'https://upload.wikimedia.org/wikipedia/commons/9/98/Tokyo_aerial_night.jpg',
+		'https://upload.wikimedia.org/wikipedia/commons/0/06/Sabi_sabi_game_drive.jpg',
+		'https://upload.wikimedia.org/wikipedia/commons/2/25/Mariner_of_the_Seas_cruise_ship.jpg',
+		'https://upload.wikimedia.org/wikipedia/commons/c/cf/Northern_Lights_02.jpg',
+	];
+	const subtitles = [
+		'Explore the beautiful Amalfi Coast',
+		'Discover the wonders of Tokyo',
+		'Experience wildlife in its natural habitat',
+		'Relax on a luxurious Caribbean cruise',
+		'Witness the magical Northern Lights',
+	];
+	const websiteUrls = [
+		'https://www.google.com/search?q=amalfi+coast+tour',
+		'https://www.google.com/search?q=tokyo+city+tour',
+		'https://www.google.com/search?q=african+safari+tour',
+		'https://www.google.com/search?q=caribbean+cruise+tour',
+		'https://www.google.com/search?q=northern+lights+tour',
+	];
+	const firstButtonTitles = [
+		'Book Amalfi Tour',
+		'Book Tokyo Tour',
+		'Book Safari Tour',
+		'Book Cruise',
+		'Book Iceland Tour',
+	];
+	const secondButtonTitles = [
+		'Learn More About Amalfi',
+		'Learn More About Tokyo',
+		'Learn More About Safaris',
+		'Learn More About Cruises',
+		'Learn More About Northern Lights',
+	];
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
 
 	try {
@@ -114,12 +149,12 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		const result = await instagram.sendTemplate(
 			igId,
 			igsId,
-			messageTitle,
-			imageUrl,
-			messageSubtitle,
-			websiteUrl,
-			firstButtonTitle,
-			secondButtonTitle,
+			titles,
+			imageUrls,
+			subtitles,
+			websiteUrls,
+			firstButtonTitles,
+			secondButtonTitles,
 			app,
 			env
 		);

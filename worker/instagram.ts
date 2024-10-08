@@ -36,17 +36,39 @@ class InstagramAPI {
 	async sendTemplate(
 		igId: string,
 		igsId: string,
-		messageTitle: string,
-		imageUrl: string,
-		messageSubtitle: string,
-		websiteUrl: string,
-		firstButtonTitle: string,
-		secondButtonTitle: string,
+		titles: string[],
+		imageUrls: string[],
+		subtitles: string[],
+		websiteUrls: string[],
+		firstButtonTitles: string[],
+		secondButtonTitles: string[],
 		app: App,
 		env: Env
 	): Promise<any> {
 		console.log('Preparing to send template message to igId:', igId);
 		const url = `${this.apiBaseUrl}${igsId}/messages?access_token=${this.token}`;
+		const elements = titles.map((title, index) => ({
+			title: title,
+			image_url: imageUrls[index],
+			subtitle: subtitles[index],
+			default_action: {
+				type: 'web_url',
+				url: websiteUrls[index],
+			},
+			buttons: [
+				{
+					type: 'web_url',
+					url: websiteUrls[index],
+					title: firstButtonTitles[index],
+				},
+				{
+					type: 'postback',
+					title: secondButtonTitles[index],
+					payload: `PAYLOAD_${index + 1}`,
+				},
+			],
+		}));
+
 		const body = {
 			recipient: {
 				id: igId,
@@ -56,117 +78,12 @@ class InstagramAPI {
 					type: 'template',
 					payload: {
 						template_type: 'generic',
-						elements: [
-							{
-								title: messageTitle,
-								image_url: imageUrl,
-								subtitle: messageSubtitle,
-								default_action: {
-									type: 'web_url',
-									url: websiteUrl,
-								},
-								buttons: [
-									{
-										type: 'web_url',
-										url: websiteUrl,
-										title: firstButtonTitle,
-									},
-									{
-										type: 'postback',
-										title: secondButtonTitle,
-										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
-									},
-								],
-							},
-							{
-								title: messageTitle,
-								image_url: imageUrl,
-								subtitle: messageSubtitle,
-								default_action: {
-									type: 'web_url',
-									url: websiteUrl,
-								},
-								buttons: [
-									{
-										type: 'web_url',
-										url: websiteUrl,
-										title: firstButtonTitle,
-									},
-									{
-										type: 'postback',
-										title: secondButtonTitle,
-										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
-									},
-								],
-							},
-							{
-								title: messageTitle,
-								image_url: imageUrl,
-								subtitle: messageSubtitle,
-								default_action: {
-									type: 'web_url',
-									url: websiteUrl,
-								},
-								buttons: [
-									{
-										type: 'web_url',
-										url: websiteUrl,
-										title: firstButtonTitle,
-									},
-									{
-										type: 'postback',
-										title: secondButtonTitle,
-										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
-									},
-								],
-							},
-							{
-								title: messageTitle,
-								image_url: imageUrl,
-								subtitle: messageSubtitle,
-								default_action: {
-									type: 'web_url',
-									url: websiteUrl,
-								},
-								buttons: [
-									{
-										type: 'web_url',
-										url: websiteUrl,
-										title: firstButtonTitle,
-									},
-									{
-										type: 'postback',
-										title: secondButtonTitle,
-										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
-									},
-								],
-							},
-							{
-								title: messageTitle,
-								image_url: imageUrl,
-								subtitle: messageSubtitle,
-								default_action: {
-									type: 'web_url',
-									url: websiteUrl,
-								},
-								buttons: [
-									{
-										type: 'web_url',
-										url: websiteUrl,
-										title: firstButtonTitle,
-									},
-									{
-										type: 'postback',
-										title: secondButtonTitle,
-										payload: 'PAYLOAD_TO_INCLUDE_FOR_BUTTON_2',
-									},
-								],
-							},
-						],
+						elements: elements,
 					},
 				},
 			},
 		};
+
 		console.log('Sending request to Instagram API:', url);
 		console.log('Request body:', JSON.stringify(body, null, 2));
 		try {
