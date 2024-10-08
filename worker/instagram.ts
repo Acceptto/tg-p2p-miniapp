@@ -35,6 +35,7 @@ class InstagramAPI {
 
 	async sendTemplate(
 		igId: string,
+		igsId: string,
 		messageTitle: string,
 		imageUrl: string,
 		messageSubtitle: string,
@@ -45,7 +46,7 @@ class InstagramAPI {
 		env: Env
 	): Promise<any> {
 		console.log('Preparing to send template message to igId:', igId);
-		const url = `${this.apiBaseUrl}${igId}/messages?access_token=${this.token}`;
+		const url = `${this.apiBaseUrl}${igsId}/messages?access_token=${this.token}`;
 		const body = {
 			recipient: {
 				id: igId,

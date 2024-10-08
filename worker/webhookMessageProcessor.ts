@@ -40,7 +40,7 @@ async function processMessage(message: MessageValue, app: App, env: Env): Promis
 		switch (message.message.text.toLowerCase().trim()) {
 			case 'view_group_buys':
 				console.log('Matched "view_group_buys" command');
-				await handleTravelMessage(message.sender.id, app, env);
+				await handleTravelMessage(message.sender.id, message.recipient.id, app, env);
 				break;
 			default:
 				console.log('Unrecognized command');
@@ -51,7 +51,7 @@ async function processMessage(message: MessageValue, app: App, env: Env): Promis
 	}
 }
 
-async function handleTravelMessage(igId: string, app: App, env: Env): Promise<void> {
+async function handleTravelMessage(igId: string, igsId: string, app: App, env: Env): Promise<void> {
 	console.log('Entering handleTravelMessage for igId:', igId);
 	const messageTitle = 'Check out our latest group buys!';
 	const imageUrl = 'https://placehold.co/600x400';
@@ -65,6 +65,7 @@ async function handleTravelMessage(igId: string, app: App, env: Env): Promise<vo
 		console.log('Sending template message...');
 		const result = await instagram.sendTemplate(
 			igId,
+			igsId,
 			messageTitle,
 			imageUrl,
 			messageSubtitle,
