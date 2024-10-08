@@ -9,6 +9,10 @@ interface MessageValue {
 		mid?: string;
 		text?: string;
 	};
+	postback?: {
+		title: string;
+		payload: string;
+	};
 }
 
 export async function processField(field: string, value: any, app: App, env: Env): Promise<void> {
@@ -31,28 +35,71 @@ export async function processField(field: string, value: any, app: App, env: Env
 async function processMessage(message: MessageValue, app: App, env: Env): Promise<void> {
 	console.log('Processing message:', JSON.stringify(message, null, 2));
 
-	if (message.sender?.id && message.recipient?.id && message.message?.text) {
+	if (message.sender?.id && message.recipient?.id) {
 		console.log(
-			`Received message from ${message.sender.id} to ${message.recipient.id} at ${message.timestamp || 'unknown time'}`
+			`Received interaction from ${message.sender.id} to ${message.recipient.id} at ${message.timestamp || 'unknown time'}`
 		);
-		console.log(`Message content: ${message.message.text}`);
 
-		switch (message.message.text.toLowerCase().trim()) {
-			case 'view_group_buys':
-				console.log('Matched "view_group_buys" command');
-				await handleTravelMessage(message.sender.id, message.recipient.id, app, env);
-				break;
-			default:
-				console.log('Unrecognized command');
-				await sendDefaultReply(message.sender.id, app, env);
+		if (message.postback) {
+			console.log('Processing ice breaker postback');
+			await handlePostback(message.sender.id, message.recipient.id, message.postback, app, env);
+		} else if (message.message?.text) {
+			console.log(`Processing message text: ${message.message.text}`);
+			await handleMessageText(
+				message.sender.id,
+				message.recipient.id,
+				message.message.text,
+				app,
+				env
+			);
+		} else {
+			console.warn('Received message without text or postback');
 		}
 	} else {
 		console.warn('Received incomplete message data:', message);
 	}
 }
 
+async function handlePostback(
+	senderId: string,
+	recipientId: string,
+	postback: { title: string; payload: string },
+	app: App,
+	env: Env
+): Promise<void> {
+	console.log(`Handling postback: ${postback.title} with payload: ${postback.payload}`);
+
+	switch (postback.payload.toLowerCase().trim()) {
+		case 'view_group_buys':
+			console.log('Matched "view_group_buys" payload from ice breaker');
+			await handleTravelMessage(senderId, recipientId, app, env);
+			break;
+		default:
+			console.log('Unrecognized postback payload');
+			await sendDefaultReply(senderId, app, env);
+	}
+}
+
+async function handleMessageText(
+	senderId: string,
+	recipientId: string,
+	text: string,
+	app: App,
+	env: Env
+): Promise<void> {
+	switch (text.toLowerCase().trim()) {
+		case 'view_group_buys':
+			console.log('Matched "view_group_buys" command');
+			await handleTravelMessage(senderId, recipientId, app, env);
+			break;
+		default:
+			console.log('Unrecognized command');
+			await sendDefaultReply(senderId, app, env);
+	}
+}
+
 async function handleTravelMessage(igId: string, igsId: string, app: App, env: Env): Promise<void> {
-	console.log('Entering handleTravelMessage for igId:', igId);
+	console.log('Entering handleTravelMessage for igId:', igId, 'and igsId:', igsId);
 	const messageTitle = 'Check out our latest group buys!';
 	const imageUrl = 'https://placehold.co/600x400';
 	const messageSubtitle = 'Great deals on travel packages';
