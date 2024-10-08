@@ -102,7 +102,7 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 	console.log('Entering handleTravelMessage for igId:', igId, 'and igsId:', igsId);
 	const messageTitle = 'Check out our latest group buys!';
 	const imageUrl =
-		'8XhZk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-amalfi-coast-newman-family-NOCHCDBAGS0223-e03f54b7c9c040c4b74823626ec9bdc9.jpg';
+		'https://www.travelandleisure.com/thmb/3ArBlvVnMviBqI7CKkZPRb8XhZk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-amalfi-coast-newman-family-NOCHCDBAGS0223-e03f54b7c9c040c4b74823626ec9bdc9.jpg';
 	const messageSubtitle = 'Great deals on travel packages';
 	const websiteUrl = 'https://google.com';
 	const firstButtonTitle = 'View Deals';
