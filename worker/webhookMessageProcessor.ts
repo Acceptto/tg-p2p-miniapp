@@ -108,8 +108,8 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Northern Lights in Iceland',
 	];
 	const imageUrls = [
-		'https://upload.wikimedia.org/wikipedia/commons/0/0d/Positano-Amalfi_Coast-Italy.jpg',
-		'https://upload.wikimedia.org/wikipedia/commons/9/98/Tokyo_aerial_night.jpg',
+		'https://instagram-stories://share',
+		'instagram-stories://share',
 		'https://upload.wikimedia.org/wikipedia/commons/0/06/Sabi_sabi_game_drive.jpg',
 		'https://upload.wikimedia.org/wikipedia/commons/2/25/Mariner_of_the_Seas_cruise_ship.jpg',
 		'https://upload.wikimedia.org/wikipedia/commons/c/cf/Northern_Lights_02.jpg',
