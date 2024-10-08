@@ -6,8 +6,6 @@ import { App, Env } from './types';
 import XHubSignature from './XHubSignature';
 import { ExecutionContext } from '@cloudflare/workers-types';
 
-const router = Router();
-
 function createJsonResponse(data: any, status: number): Response {
 	return new Response(JSON.stringify(data), {
 		status,
@@ -106,14 +104,22 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 
 			// Process the webhook payload
 			if (jsonBody.object === 'instagram' && Array.isArray(jsonBody.entry)) {
+				console.log('Processing Instagram webhook payload');
 				for (const entry of jsonBody.entry) {
-					if (entry.changes) {
+					console.log('Processing entry:', JSON.stringify(entry, null, 2));
+					if (entry.messaging) {
+						console.log('Processing messaging field');
+						await processField('messaging', entry.messaging, { instagram, db } as App, env);
+					} else if (entry.changes) {
 						for (const change of entry.changes) {
+							console.log('Processing change:', JSON.stringify(change, null, 2));
 							await processField(change.field, change.value, { instagram, db } as App, env);
 						}
+					} else {
+						console.log('No messaging or changes field found in entry');
 					}
 				}
-				console.log('Webhook processed successfully');
+				console.log('Webhook processing completed');
 				return createJsonResponse({ message: 'Webhook processed successfully' }, 200);
 			} else {
 				console.log('Unexpected webhook payload structure');
@@ -150,6 +156,8 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	});
 };
 
+const router = Router();
+
 router.get('/', (request: Request, app: App, env: Env) => {
 	const url = new URL(request.url);
 	const mode = url.searchParams.get('hub.mode');
@@ -183,11 +191,6 @@ router.options(
 
 router.all('*', () => createJsonResponse({ error: 'Not found' }, 404));
 
-export default {
-	fetch: handle,
-};
-
-// Helper function to type-check the Instagram API response
 function isInstagramApiResponse(response: any): response is {
 	id: string;
 	user_id: string;
@@ -206,3 +209,7 @@ function isInstagramApiResponse(response: any): response is {
 		typeof response.username === 'string'
 	);
 }
+
+export default {
+	fetch: handle,
+};
