@@ -123,7 +123,7 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 	];
 	const websiteUrls = [
 		'https://instagram-stories://share',
-		'instagram-stories://share',
+		'https://www.google.com/search?q=tokyo+city+tour',
 		'https://www.google.com/search?q=african+safari+tour',
 		'https://www.google.com/search?q=caribbean+cruise+tour',
 		'https://www.google.com/search?q=northern+lights+tour',
