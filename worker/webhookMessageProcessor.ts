@@ -174,15 +174,6 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 			env
 		);
 
-		const thankYouMessage =
-			'Thank you for mentioning us in your story! We really appreciate it. 😊';
-
-		// Send a text message
-		const mes = await instagram.sendTextMessage(igId, igsId, thankYouMessage);
-
-		// Send a heart sticker
-		const mes2 = await instagram.sendStickerMessage(igId, igsId);
-
 		console.log('Template message sent successfully:', result);
 	} catch (error) {
 		console.error('Error sending template message:', error);
@@ -216,7 +207,8 @@ async function handleStoryMention(
 	console.log(`Story mention URL: ${payload.url}`);
 
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
-	const thankYouMessage = 'Thank you for mentioning us in your story! We really appreciate it. 😊';
+	const thankYouMessage =
+		'Thank you for the shout-out in your story! We truly appreciate it. 😊 We’re excited to offer 3 days of free stays to 10 lucky winners. Don’t miss your chance—join now and win!';
 
 	try {
 		// Send a text message
@@ -224,6 +216,27 @@ async function handleStoryMention(
 
 		// Send a heart sticker
 		await instagram.sendStickerMessage(igId, igsId);
+
+		const titles = ['Giveaway'];
+		const imageUrls = [
+			'https://upload.wikimedia.org/wikipedia/commons/0/0d/Positano-Amalfi_Coast-Italy.jpg',
+		];
+		const subtitles = ['3 days of free stays to 10 lucky winners'];
+		const websiteUrls = ['https://www.google.com/search?q=amalfi+tour'];
+		const firstButtonTitles = ['JOIN'];
+		const secondButtonTitles = ['LEARN MORE'];
+		await instagram.sendTemplate(
+			igId,
+			igsId,
+			titles,
+			imageUrls,
+			subtitles,
+			websiteUrls,
+			firstButtonTitles,
+			secondButtonTitles,
+			app,
+			env
+		);
 
 		console.log('Thank you message and sticker sent successfully');
 	} catch (error) {
