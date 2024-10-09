@@ -77,8 +77,26 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 
 	const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
 
-	// Verify signature for all requests except OPTIONS
-	if (request.method !== 'OPTIONS') {
+	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
+		env.INSTAGRAM_BOT_TOKEN
+	);
+
+	if (!instagram_professional_user) {
+		instagram_professional_user = await fetchInstagramUser(instagram, db, env.INSTAGRAM_BOT_TOKEN);
+		if (!instagram_professional_user) {
+			return createJsonResponse({ error: 'Failed to fetch Instagram user' }, 500);
+		}
+	}
+
+	const app: App = { instagram, db, corsHeaders, isLocalhost, instagram_professional_user };
+
+	// Add a context object to store the requiresSignatureValidation flag
+	const routerContext = { requiresSignatureValidation: true };
+
+	const response = await router.handle(request, app, env, ctx, routerContext);
+
+	// Perform signature validation only if required
+	if (routerContext.requiresSignatureValidation && request.method !== 'OPTIONS') {
 		const signature = request.headers.get('X-Hub-Signature-256');
 		if (!signature) {
 			console.log('Missing signature');
@@ -131,20 +149,6 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 		}
 	}
 
-	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
-		env.INSTAGRAM_BOT_TOKEN
-	);
-
-	if (!instagram_professional_user) {
-		instagram_professional_user = await fetchInstagramUser(instagram, db, env.INSTAGRAM_BOT_TOKEN);
-		if (!instagram_professional_user) {
-			return createJsonResponse({ error: 'Failed to fetch Instagram user' }, 500);
-		}
-	}
-
-	const app: App = { instagram, db, corsHeaders, isLocalhost, instagram_professional_user };
-	const response = await router.handle(request, app, env, ctx);
-
 	return new Response(response.body, {
 		status: response.status,
 		statusText: response.statusText,
@@ -158,25 +162,31 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 
 const router = Router();
 
-router.get('/', (request: Request, app: App, env: Env) => {
-	const url = new URL(request.url);
-	const mode = url.searchParams.get('hub.mode');
-	const token = url.searchParams.get('hub.verify_token');
-	const challenge = url.searchParams.get('hub.challenge');
+router.get(
+	'/',
+	(request: Request, app: App, env: Env, ctx: ExecutionContext, routerContext: any) => {
+		// Set requiresSignatureValidation to false for this route
+		routerContext.requiresSignatureValidation = false;
 
-	if (mode === 'subscribe' && token) {
-		if (token === env.WEBHOOK_VERIFY_TOKEN) {
-			return new Response(challenge || '', { status: 200 });
-		} else {
-			return createJsonResponse({ error: 'Forbidden' }, 403);
+		const url = new URL(request.url);
+		const mode = url.searchParams.get('hub.mode');
+		const token = url.searchParams.get('hub.verify_token');
+		const challenge = url.searchParams.get('hub.challenge');
+
+		if (mode === 'subscribe' && token) {
+			if (token === env.WEBHOOK_VERIFY_TOKEN) {
+				return new Response(challenge || '', { status: 200 });
+			} else {
+				return createJsonResponse({ error: 'Forbidden' }, 403);
+			}
 		}
-	}
 
-	return new Response(
-		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
-		{ status: 200 }
-	);
-});
+		return new Response(
+			'This instagram bot is deployed correctly. No user-serviceable parts inside.',
+			{ status: 200 }
+		);
+	}
+);
 
 router.options(
 	'/miniApp/*',
