@@ -106,12 +106,12 @@ class InstagramAPI {
 		}
 	}
 
-	async sendMessage(igId: string, message: any): Promise<any> {
+	async sendMessage(igId: string, igsId: string, message: any): Promise<any> {
 		console.log(`Sending message to ${igId}:`, message);
 		const url = `${this.apiBaseUrl}${igId}/messages`;
 		const body = {
 			recipient: {
-				id: igId,
+				id: igsId,
 			},
 			message: message,
 		};
@@ -140,12 +140,12 @@ class InstagramAPI {
 		}
 	}
 
-	async sendTextMessage(igId: string, text: string): Promise<any> {
-		return this.sendMessage(igId, { text: text });
+	async sendTextMessage(igId: string, igsId: string, text: string): Promise<any> {
+		return this.sendMessage(igId, igsId, { text: text });
 	}
 
-	async sendImageMessage(igId: string, imageUrl: string): Promise<any> {
-		return this.sendMessage(igId, {
+	async sendImageMessage(igId: string, igsId: string, imageUrl: string): Promise<any> {
+		return this.sendMessage(igId, igsId, {
 			attachment: {
 				type: 'image',
 				payload: {
@@ -155,8 +155,8 @@ class InstagramAPI {
 		});
 	}
 
-	async sendAudioMessage(igId: string, audioUrl: string): Promise<any> {
-		return this.sendMessage(igId, {
+	async sendAudioMessage(igId: string, igsId: string, audioUrl: string): Promise<any> {
+		return this.sendMessage(igId, igsId, {
 			attachment: {
 				type: 'audio',
 				payload: {
@@ -166,8 +166,8 @@ class InstagramAPI {
 		});
 	}
 
-	async sendVideoMessage(igId: string, videoUrl: string): Promise<any> {
-		return this.sendMessage(igId, {
+	async sendVideoMessage(igId: string, igsId: string, videoUrl: string): Promise<any> {
+		return this.sendMessage(igId, igsId, {
 			attachment: {
 				type: 'video',
 				payload: {
@@ -177,19 +177,24 @@ class InstagramAPI {
 		});
 	}
 
-	async sendStickerMessage(igId: string): Promise<any> {
-		return this.sendMessage(igId, {
+	async sendStickerMessage(igId: string, igsId: string): Promise<any> {
+		return this.sendMessage(igId, igsId, {
 			attachment: {
 				type: 'like_heart',
 			},
 		});
 	}
 
-	async sendReaction(igId: string, messageId: string, reaction: string = 'love'): Promise<any> {
+	async sendReaction(
+		igId: string,
+		igsId: string,
+		messageId: string,
+		reaction: string = 'love'
+	): Promise<any> {
 		const url = `${this.apiBaseUrl}${igId}/messages`;
 		const body = {
 			recipient: {
-				id: igId,
+				id: igsId,
 			},
 			sender_action: 'react',
 			payload: {
@@ -222,8 +227,8 @@ class InstagramAPI {
 		}
 	}
 
-	async sendPostMessage(igId: string, postId: string): Promise<any> {
-		return this.sendMessage(igId, {
+	async sendPostMessage(igId: string, igsId: string, postId: string): Promise<any> {
+		return this.sendMessage(igId, igsId, {
 			attachment: {
 				type: 'MEDIA_SHARE',
 				payload: {

@@ -91,13 +91,13 @@ async function handlePostback(
 			break;
 		default:
 			console.log('Unrecognized postback payload');
-			await sendDefaultReply(senderId, app, env);
+			await sendDefaultReply(senderId, recipientId, app, env);
 	}
 }
 
 async function handleMessageText(
-	senderId: string,
-	recipientId: string,
+	igId: string,
+	igsId: string,
 	text: string,
 	app: App,
 	env: Env
@@ -105,11 +105,11 @@ async function handleMessageText(
 	switch (text.toLowerCase().trim()) {
 		case 'view_group_buys':
 			console.log('Matched "view_group_buys" command');
-			await handleTravelMessage(senderId, recipientId, app, env);
+			await handleTravelMessage(igId, igsId, app, env);
 			break;
 		default:
 			console.log('Unrecognized command');
-			await sendDefaultReply(senderId, app, env);
+			await sendDefaultReply(igId, igsId, app, env);
 	}
 }
 
@@ -173,6 +173,16 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 			app,
 			env
 		);
+
+		const thankYouMessage =
+			'Thank you for mentioning us in your story! We really appreciate it. 😊';
+
+		// Send a text message
+		await instagram.sendTextMessage(igId, igsId, thankYouMessage);
+
+		// Send a heart sticker
+		await instagram.sendStickerMessage(igId, igsId);
+
 		console.log('Template message sent successfully:', result);
 	} catch (error) {
 		console.error('Error sending template message:', error);
@@ -196,13 +206,13 @@ async function handleAttachments(
 }
 
 async function handleStoryMention(
-	senderId: string,
-	recipientId: string,
+	igId: string,
+	igsId: string,
 	payload: { url: string },
 	app: App,
 	env: Env
 ): Promise<void> {
-	console.log(`Handling story mention from ${senderId} to ${recipientId}`);
+	console.log(`Handling story mention from ${igId} to ${igsId}`);
 	console.log(`Story mention URL: ${payload.url}`);
 
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
@@ -210,10 +220,10 @@ async function handleStoryMention(
 
 	try {
 		// Send a text message
-		await instagram.sendTextMessage(senderId, thankYouMessage);
+		await instagram.sendTextMessage(igId, igsId, thankYouMessage);
 
 		// Send a heart sticker
-		await instagram.sendStickerMessage(senderId);
+		await instagram.sendStickerMessage(igId, igsId);
 
 		console.log('Thank you message and sticker sent successfully');
 	} catch (error) {
@@ -223,12 +233,12 @@ async function handleStoryMention(
 	// TODO: Add logic to store the mention or perform other actions
 }
 
-async function sendDefaultReply(senderId: string, app: App, env: Env): Promise<void> {
-	console.log('Sending default reply to senderId:', senderId);
+async function sendDefaultReply(igId: string, igsId: string, app: App, env: Env): Promise<void> {
+	console.log('Sending default reply to senderId:', igId);
 	const message = "I didn't understand that. Available commands: 'view_group_buys'";
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
 	try {
-		const result = await instagram.sendMessage(senderId, message);
+		const result = await instagram.sendTextMessage(igId, igsId, message);
 		console.log('Default reply sent successfully:', result);
 	} catch (error) {
 		console.error('Error sending default reply:', error);
