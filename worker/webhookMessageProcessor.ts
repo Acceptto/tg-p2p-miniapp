@@ -122,7 +122,7 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Witness the magical Northern Lights',
 	];
 	const websiteUrls = [
-		'https://instagram-stories://share',
+		'https://www.google.com/search?q=amalfi+tour',
 		'https://www.google.com/search?q=tokyo+city+tour',
 		'https://www.google.com/search?q=african+safari+tour',
 		'https://www.google.com/search?q=caribbean+cruise+tour',
