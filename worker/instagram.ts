@@ -106,35 +106,131 @@ class InstagramAPI {
 		}
 	}
 
-	async sendMessage(igId: string, text: string): Promise<any> {
-		console.log(`Sending message to ${igId}: ${text}`);
-		const url = `${this.apiBaseUrl}${igId}/messages?access_token=${this.token}`;
+	async sendMessage(igId: string, message: any): Promise<any> {
+		console.log(`Sending message to ${igId}:`, message);
+		const url = `${this.apiBaseUrl}${igId}/messages`;
 		const body = {
 			recipient: {
 				id: igId,
 			},
-			message: {
-				text: text,
-			},
+			message: message,
 		};
+
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
 				headers: {
+					'Authorization': `Bearer ${this.token}`,
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify(body),
 			});
+
 			const responseData = await response.json();
 			console.log('Instagram API response for sendMessage:', responseData);
+
 			if (!response.ok) {
 				throw new Error(`Instagram API error: ${response.status} ${response.statusText}`);
 			}
+
 			return responseData;
 		} catch (error) {
 			console.error('Error sending message via Instagram API:', error);
 			throw error;
 		}
+	}
+
+	async sendTextMessage(igId: string, text: string): Promise<any> {
+		return this.sendMessage(igId, { text: text });
+	}
+
+	async sendImageMessage(igId: string, imageUrl: string): Promise<any> {
+		return this.sendMessage(igId, {
+			attachment: {
+				type: 'image',
+				payload: {
+					url: imageUrl,
+				},
+			},
+		});
+	}
+
+	async sendAudioMessage(igId: string, audioUrl: string): Promise<any> {
+		return this.sendMessage(igId, {
+			attachment: {
+				type: 'audio',
+				payload: {
+					url: audioUrl,
+				},
+			},
+		});
+	}
+
+	async sendVideoMessage(igId: string, videoUrl: string): Promise<any> {
+		return this.sendMessage(igId, {
+			attachment: {
+				type: 'video',
+				payload: {
+					url: videoUrl,
+				},
+			},
+		});
+	}
+
+	async sendStickerMessage(igId: string): Promise<any> {
+		return this.sendMessage(igId, {
+			attachment: {
+				type: 'like_heart',
+			},
+		});
+	}
+
+	async sendReaction(igId: string, messageId: string, reaction: string = 'love'): Promise<any> {
+		const url = `${this.apiBaseUrl}${igId}/messages`;
+		const body = {
+			recipient: {
+				id: igId,
+			},
+			sender_action: 'react',
+			payload: {
+				message_id: messageId,
+				reaction: reaction,
+			},
+		};
+
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${this.token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			});
+
+			const responseData = await response.json();
+			console.log('Instagram API response for sendReaction:', responseData);
+
+			if (!response.ok) {
+				throw new Error(`Instagram API error: ${response.status} ${response.statusText}`);
+			}
+
+			return responseData;
+		} catch (error) {
+			console.error('Error sending reaction via Instagram API:', error);
+			throw error;
+		}
+	}
+
+	async sendPostMessage(igId: string, postId: string): Promise<any> {
+		return this.sendMessage(igId, {
+			attachment: {
+				type: 'MEDIA_SHARE',
+				payload: {
+					id: postId,
+				},
+			},
+		});
 	}
 }
 

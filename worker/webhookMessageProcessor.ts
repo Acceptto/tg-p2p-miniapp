@@ -8,6 +8,12 @@ interface MessageValue {
 	message?: {
 		mid?: string;
 		text?: string;
+		attachments?: Array<{
+			type: string;
+			payload: {
+				url: string;
+			};
+		}>;
 	};
 	postback?: {
 		title: string;
@@ -52,8 +58,17 @@ async function processMessage(message: MessageValue, app: App, env: Env): Promis
 				app,
 				env
 			);
+		} else if (message.message?.attachments) {
+			console.log('Processing message attachments');
+			await handleAttachments(
+				message.sender.id,
+				message.recipient.id,
+				message.message.attachments,
+				app,
+				env
+			);
 		} else {
-			console.warn('Received message without text or postback');
+			console.warn('Received message without text, postback, or attachments');
 		}
 	} else {
 		console.warn('Received incomplete message data:', message);
@@ -162,6 +177,50 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 	} catch (error) {
 		console.error('Error sending template message:', error);
 	}
+}
+
+async function handleAttachments(
+	senderId: string,
+	recipientId: string,
+	attachments: Array<{ type: string; payload: { url: string } }>,
+	app: App,
+	env: Env
+): Promise<void> {
+	for (const attachment of attachments) {
+		if (attachment.type === 'story_mention') {
+			await handleStoryMention(senderId, recipientId, attachment.payload, app, env);
+		} else {
+			console.log(`Unhandled attachment type: ${attachment.type}`);
+		}
+	}
+}
+
+async function handleStoryMention(
+	senderId: string,
+	recipientId: string,
+	payload: { url: string },
+	app: App,
+	env: Env
+): Promise<void> {
+	console.log(`Handling story mention from ${senderId} to ${recipientId}`);
+	console.log(`Story mention URL: ${payload.url}`);
+
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
+	const thankYouMessage = 'Thank you for mentioning us in your story! We really appreciate it. 😊';
+
+	try {
+		// Send a text message
+		await instagram.sendTextMessage(senderId, thankYouMessage);
+
+		// Send a heart sticker
+		await instagram.sendStickerMessage(senderId);
+
+		console.log('Thank you message and sticker sent successfully');
+	} catch (error) {
+		console.error('Error sending thank you message and sticker:', error);
+	}
+
+	// TODO: Add logic to store the mention or perform other actions
 }
 
 async function sendDefaultReply(senderId: string, app: App, env: Env): Promise<void> {
