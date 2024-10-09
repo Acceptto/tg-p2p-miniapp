@@ -174,7 +174,7 @@ router.get(
 		const challenge = url.searchParams.get('hub.challenge');
 
 		if (mode === 'subscribe' && token) {
-			if (token === env.WEBHOOK_VERIFY_TOKEN) {
+			if (token === 'jkfdkjdk') {
 				return new Response(challenge || '', { status: 200 });
 			} else {
 				return createJsonResponse({ error: 'Forbidden' }, 403);
