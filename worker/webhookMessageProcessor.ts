@@ -178,10 +178,10 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 			'Thank you for mentioning us in your story! We really appreciate it. 😊';
 
 		// Send a text message
-		await instagram.sendTextMessage(igId, igsId, thankYouMessage);
+		const mes = await instagram.sendTextMessage(igId, igsId, thankYouMessage);
 
 		// Send a heart sticker
-		await instagram.sendStickerMessage(igId, igsId);
+		const mes2 = await instagram.sendStickerMessage(igId, igsId);
 
 		console.log('Template message sent successfully:', result);
 	} catch (error) {

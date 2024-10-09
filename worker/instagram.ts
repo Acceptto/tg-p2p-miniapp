@@ -107,11 +107,11 @@ class InstagramAPI {
 	}
 
 	async sendMessage(igId: string, igsId: string, message: any): Promise<any> {
-		console.log(`Sending message to ${igId}:`, message);
-		const url = `${this.apiBaseUrl}${igId}/messages`;
+		console.log(`Sending message to ${igsId}:`, message);
+		const url = `${this.apiBaseUrl}${igsId}/messages`;
 		const body = {
 			recipient: {
-				id: igsId,
+				id: igId,
 			},
 			message: message,
 		};
@@ -191,10 +191,10 @@ class InstagramAPI {
 		messageId: string,
 		reaction: string = 'love'
 	): Promise<any> {
-		const url = `${this.apiBaseUrl}${igId}/messages`;
+		const url = `${this.apiBaseUrl}${igsId}/messages`;
 		const body = {
 			recipient: {
-				id: igsId,
+				id: igId,
 			},
 			sender_action: 'react',
 			payload: {
