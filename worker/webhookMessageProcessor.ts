@@ -122,7 +122,7 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Witness the magical Northern Lights',
 	];
 	const websiteUrls = [
-		'https://www.google.com/search?q=amalfi+coast+tour',
+		'https://instagram-stories://share',
 		'https://www.google.com/search?q=tokyo+city+tour',
 		'https://www.google.com/search?q=african+safari+tour',
 		'https://www.google.com/search?q=caribbean+cruise+tour',
@@ -135,10 +135,13 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Book Cruise',
 		'Book Iceland Tour',
 	];
-	const shareUrls = imageUrls.map(
-		(imageUrl, index) =>
-			`instagram-stories://share?source_application=${env.INSTAGRAM_APP_ID}&background_image=${encodeURIComponent(imageUrl)}&sticker_image=${encodeURIComponent(env.STICKER_IMAGE_URL)}&background_color=%23FFFFFF&sticker_top=70%25&sticker_left=50%25&sticker_width=50%25&sticker_height=30%25&attribution_link=${encodeURIComponent(websiteUrls[index])}`
-	);
+	const secondButtonTitles = [
+		'Learn More About Amalfi',
+		'Learn More About Tokyo',
+		'Learn More About Safaris',
+		'Learn More About Cruises',
+		'Learn More About Northern Lights',
+	];
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
 
 	try {
@@ -151,7 +154,7 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 			subtitles,
 			websiteUrls,
 			firstButtonTitles,
-			shareUrls,
+			secondButtonTitles,
 			app,
 			env
 		);

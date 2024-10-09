@@ -41,7 +41,7 @@ class InstagramAPI {
 		subtitles: string[],
 		websiteUrls: string[],
 		firstButtonTitles: string[],
-		shareUrls: string[],
+		secondButtonTitles: string[],
 		app: App,
 		env: Env
 	): Promise<any> {
@@ -62,9 +62,9 @@ class InstagramAPI {
 					title: firstButtonTitles[index],
 				},
 				{
-					type: 'web_url',
-					url: shareUrls[index],
-					title: 'Share to Stories',
+					type: 'postback',
+					title: secondButtonTitles[index],
+					payload: `PAYLOAD_${index + 1}`,
 				},
 			],
 		}));
