@@ -157,7 +157,8 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Learn More About Cruises',
 		'Learn More About Northern Lights',
 	];
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
+
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 
 	try {
 		console.log('Sending template message...');
@@ -206,7 +207,7 @@ async function handleStoryMention(
 	console.log(`Handling story mention from ${igId} to ${igsId}`);
 	console.log(`Story mention URL: ${payload.url}`);
 
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	const thankYouMessage =
 		'Thank you for the shout-out in your story! We truly appreciate it. 😊 We’re excited to offer 3 days of free stays to 10 lucky winners. Don’t miss your chance—join now and win!';
 
@@ -249,7 +250,7 @@ async function handleStoryMention(
 async function sendDefaultReply(igId: string, igsId: string, app: App, env: Env): Promise<void> {
 	console.log('Sending default reply to senderId:', igId);
 	const message = "I didn't understand that. Available commands: 'view_group_buys'";
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	try {
 		const result = await instagram.sendTextMessage(igId, igsId, message);
 		console.log('Default reply sent successfully:', result);

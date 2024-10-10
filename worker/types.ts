@@ -15,6 +15,7 @@ export interface Env {
 	FRONTEND_URL: string;
 	WEBHOOK_VERIFY_TOKEN: string;
 	INSTAGRAM_APP_SECRET: string;
+	INSTAGRAM_API_BASE_URL: string;
 }
 
 export interface InstagramProfessionalUser {

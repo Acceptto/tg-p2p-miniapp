@@ -1,8 +1,13 @@
 name = "telegram-p2p"
-compatibility_date = "2023-10-07"
+compatibility_date = "2024-10-10"
 
 # For Cloudflare Workers
 main = "worker/index.ts"
+minify = true
+
+# Environment variables
+[vars]
+INSTAGRAM_API_BASE_URL = "https://graph.instagram.com/v21.0/"
 
 [[d1_databases]]
 binding = "DB"

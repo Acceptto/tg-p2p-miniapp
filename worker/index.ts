@@ -59,7 +59,7 @@ async function fetchInstagramUser(
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
 	console.log('Received request:', request.method, request.url);
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN);
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	const db = new Database(env.DB);
 	const corsHeaders = {
 		'Access-Control-Allow-Origin': env.FRONTEND_URL,
