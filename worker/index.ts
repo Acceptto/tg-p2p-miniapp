@@ -85,10 +85,7 @@ const verifySignature = async (request: IRequest, env: Env) => {
 		}
 
 		const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
-		console.log('First 4 letters of INSTAGRAM_APP_SECRET:', env.INSTAGRAM_APP_SECRET.slice(0, 4));
-
-		// Use the parsed content instead of parsing the body manually
-		const body = JSON.stringify(request.content);
+		const body = await request.text();
 		console.log('Request body:', body);
 
 		const isValid = await xhub.verify(signature, body);
@@ -98,6 +95,7 @@ const verifySignature = async (request: IRequest, env: Env) => {
 		}
 
 		console.log('Signature validation successful');
+		(request as any).parsedBody = JSON.parse(body);
 	}
 };
 
@@ -147,7 +145,7 @@ router.get('/', (request, env) => {
 });
 
 router.post('/', async (request, env) => {
-	const body = request.content;
+	const body = (request as any).parsedBody;
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	const db = new Database(env.DB);
 
