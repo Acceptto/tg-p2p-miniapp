@@ -85,6 +85,7 @@ const verifySignature = async (request: IRequest, env: Env) => {
 		}
 
 		const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
+		console.log('First 4 letters of INSTAGRAM_APP_SECRET:', env.INSTAGRAM_APP_SECRET.slice(0, 4));
 
 		// Use the parsed content instead of parsing the body manually
 		const body = JSON.stringify(request.content);
