@@ -1,21 +1,34 @@
 import { Database } from './db';
 import { Instagram } from './instagram';
 
-export interface App {
-	instagram: Instagram;
-	db: Database;
-	corsHeaders: Record<string, string>;
-	isLocalhost: boolean;
-	instagram_professional_user: InstagramProfessionalUser | null;
-}
-
 export interface Env {
+	// Environment Variables
 	INSTAGRAM_BOT_TOKEN: string;
 	DB: D1Database;
 	FRONTEND_URL: string;
 	WEBHOOK_VERIFY_TOKEN: string;
 	INSTAGRAM_APP_SECRET: string;
 	INSTAGRAM_API_BASE_URL: string;
+
+	// KV Namespaces
+	KV: KVNamespace;
+
+	// Durable Objects
+	COUNTER: DurableObjectNamespace;
+
+	// R2 Buckets
+	MY_BUCKET: R2Bucket;
+
+	// Queues
+	MY_QUEUE: Queue;
+}
+
+export interface App {
+	instagram: Instagram;
+	db: Database;
+	corsHeaders: Record<string, string>;
+	isLocalhost: boolean;
+	instagram_professional_user: InstagramProfessionalUser | null;
 }
 
 export interface InstagramProfessionalUser {

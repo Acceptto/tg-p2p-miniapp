@@ -1,4 +1,4 @@
-import { AutoRouter, cors, error, json, withContent, IRequest } from 'itty-router';
+import { AutoRouter, cors, error, json, IRequest } from 'itty-router';
 import { ExecutionContext } from '@cloudflare/workers-types';
 import { Instagram } from './instagram';
 import { Database, InstagramProfessionalUser } from './db';
@@ -109,7 +109,7 @@ const securityHeaders = {
 
 const router = AutoRouter<IRequest, [Env, ExecutionContext]>({
 	base: '/',
-	before: [preflight, withContent, verifySignature],
+	before: [preflight, verifySignature],
 	catch: err => {
 		console.error('Error:', err);
 		return error(500, 'Internal Server Error');
@@ -144,10 +144,27 @@ router.get('/', (request, env) => {
 	);
 });
 
-router.post('/', async (request, env) => {
+router.post('/', async (request, env, ctx) => {
 	const body = (request as any).parsedBody;
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	const db = new Database(env.DB);
+
+	const cfInfo = {
+		country: request.cf?.country,
+		datacenter: request.cf?.colo,
+		ipAddress: request.headers.get('CF-Connecting-IP'),
+		ipcountry: request.headers.get('CF-IPCountry'),
+		isBot: request.cf?.isBot,
+		rayID: request.headers.get('CF-RAY'),
+		protocol: request.cf?.httpProtocol,
+		url: new URL(request.url).hostname,
+	};
+	console.log(cfInfo);
+
+	/*  Use ExecutionContext to schedule a task
+  ctx.waitUntil(
+    env.MY_KV.put('last-accessed', new Date().toISOString())
+    ); */
 
 	if (body.object === 'instagram' && Array.isArray(body.entry)) {
 		for (const entry of body.entry) {
