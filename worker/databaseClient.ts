@@ -1,16 +1,16 @@
-import { InstagramProfessionalUser } from './types';
+import { InstagramProfessionalUser, DatabaseClient } from './types';
 
 /**
  * Represents a database connection and provides methods to interact with Instagram Professional User data.
  */
-class Database {
-	private db: any;
+class Database implements DatabaseClient {
+	private db: D1Database;
 
 	/**
 	 * Creates a new Database instance.
 	 * @param databaseConnection - The database connection object.
 	 */
-	constructor(databaseConnection: any) {
+	constructor(databaseConnection: D1Database) {
 		this.db = databaseConnection;
 	}
 

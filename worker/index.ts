@@ -1,14 +1,14 @@
 import { AutoRouter, cors, error, json, IRequest } from 'itty-router';
 import { ExecutionContext } from '@cloudflare/workers-types';
 import { Instagram } from './instagram';
-import { Database, InstagramProfessionalUser } from './db';
+import { Database, InstagramProfessionalUser } from './databaseClient';
 import { processField } from './webhookMessageProcessor';
 import { App, Env } from './types';
 import XHubSignature from './XHubSignature';
 
 async function fetchInstagramUser(
 	instagram: Instagram,
-	db: Database,
+	databaseClient: Database,
 	token: string
 ): Promise<InstagramProfessionalUser | null> {
 	try {
@@ -33,7 +33,7 @@ async function fetchInstagramUser(
 				access_token: token,
 			};
 
-			const saveResult = await db.saveInstagramProfessionalUser(user);
+			const saveResult = await databaseClient.saveInstagramProfessionalUser(user);
 			if (!saveResult) {
 				throw new Error('Failed to save Instagram user');
 			}
@@ -147,19 +147,7 @@ router.get('/', (request, env) => {
 router.post('/', async (request, env, ctx) => {
 	const body = (request as any).parsedBody;
 	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
-	const db = new Database(env.DB);
-
-	const cfInfo = {
-		country: request.cf?.country,
-		datacenter: request.cf?.colo,
-		ipAddress: request.headers.get('CF-Connecting-IP'),
-		ipcountry: request.headers.get('CF-IPCountry'),
-		isBot: request.cf?.isBot,
-		rayID: request.headers.get('CF-RAY'),
-		protocol: request.cf?.httpProtocol,
-		url: new URL(request.url).hostname,
-	};
-	console.log(cfInfo);
+	const databaseClient = new Database(env.DB);
 
 	/*  Use ExecutionContext to schedule a task
   ctx.waitUntil(
@@ -169,10 +157,10 @@ router.post('/', async (request, env, ctx) => {
 	if (body.object === 'instagram' && Array.isArray(body.entry)) {
 		for (const entry of body.entry) {
 			if (entry.messaging) {
-				await processField('messaging', entry.messaging, { instagram, db } as App, env);
+				await processField('messaging', entry.messaging, { instagram, databaseClient } as App, env);
 			} else if (entry.changes) {
 				for (const change of entry.changes) {
-					await processField(change.field, change.value, { instagram, db } as App, env);
+					await processField(change.field, change.value, { instagram, databaseClient } as App, env);
 				}
 			}
 		}
@@ -187,17 +175,17 @@ router.all('*', () => error(404, 'Not found'));
 export default {
 	fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
 		const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
-		const db = new Database(env.DB);
+		const databaseClient = new Database(env.DB);
 		const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
 
-		let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
+		let instagram_professional_user = await databaseClient.getInstagramProfessionalUserByToken(
 			env.INSTAGRAM_BOT_TOKEN
 		);
 
 		if (!instagram_professional_user) {
 			instagram_professional_user = await fetchInstagramUser(
 				instagram,
-				db,
+				databaseClient,
 				env.INSTAGRAM_BOT_TOKEN
 			);
 			if (!instagram_professional_user) {
@@ -205,7 +193,13 @@ export default {
 			}
 		}
 
-		const app: App = { instagram, db, corsHeaders: {}, isLocalhost, instagram_professional_user };
+		const app: App = {
+			instagram,
+			databaseClient,
+			corsHeaders: {},
+			isLocalhost,
+			instagram_professional_user,
+		};
 		return router.fetch(request, env, ctx);
 	},
 };

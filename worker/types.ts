@@ -1,4 +1,4 @@
-import { Database } from './db';
+import { Database } from './databaseClient';
 import { Instagram } from './instagram';
 
 export interface Env {
@@ -25,10 +25,18 @@ export interface Env {
 
 export interface App {
 	instagram: Instagram;
-	db: Database;
+	databaseClient: Database;
 	corsHeaders: Record<string, string>;
 	isLocalhost: boolean;
 	instagram_professional_user: InstagramProfessionalUser | null;
+}
+
+export interface DatabaseClient {
+	getInstagramProfessionalUserByToken(
+		accessToken: string
+	): Promise<InstagramProfessionalUser | null>;
+	getInstagramProfessionalUserByIGID(userId: string): Promise<InstagramProfessionalUser | null>;
+	saveInstagramProfessionalUser(user: InstagramProfessionalUser): Promise<boolean>;
 }
 
 export interface InstagramProfessionalUser {
