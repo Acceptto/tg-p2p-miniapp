@@ -1,17 +1,10 @@
-import { Router } from 'itty-router';
+import { AutoRouter, cors, error, json, withContent, IRequest } from 'itty-router';
+import { ExecutionContext } from '@cloudflare/workers-types';
 import { Instagram } from './instagram';
 import { Database, InstagramProfessionalUser } from './db';
 import { processField } from './webhookMessageProcessor';
 import { App, Env } from './types';
 import XHubSignature from './XHubSignature';
-import { ExecutionContext } from '@cloudflare/workers-types';
-
-function createJsonResponse(data: any, status: number): Response {
-	return new Response(JSON.stringify(data), {
-		status,
-		headers: { 'Content-Type': 'application/json' },
-	});
-}
 
 async function fetchInstagramUser(
 	instagram: Instagram,
@@ -42,8 +35,7 @@ async function fetchInstagramUser(
 
 			const saveResult = await db.saveInstagramProfessionalUser(user);
 			if (!saveResult) {
-				console.error('Failed to save Instagram user');
-				return null;
+				throw new Error('Failed to save Instagram user');
 			}
 
 			return user;
@@ -53,143 +45,9 @@ async function fetchInstagramUser(
 		}
 	} catch (error) {
 		console.error('Failed to get Instagram user data:', error);
-		return null;
+		throw error;
 	}
 }
-
-const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
-	console.log('Received request:', request.method, request.url);
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
-	const db = new Database(env.DB);
-	const corsHeaders = {
-		'Access-Control-Allow-Origin': env.FRONTEND_URL,
-		'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-		'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Hub-Signature-256',
-		'Access-Control-Max-Age': '86400',
-	};
-	const securityHeaders = {
-		'Content-Security-Policy':
-			"default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self';",
-		'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-		'X-Content-Type-Options': 'nosniff',
-		'Referrer-Policy': 'no-referrer-when-downgrade',
-	};
-
-	const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
-
-	// Verify signature for all requests except OPTIONS
-	if (request.method !== 'OPTIONS') {
-		const signature = request.headers.get('X-Hub-Signature-256');
-		if (!signature) {
-			console.log('Missing signature');
-			return createJsonResponse({ error: 'Missing signature' }, 400);
-		}
-
-		const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
-		const body = await request.text();
-		console.log('Request body:', body);
-
-		const isValid = await xhub.verify(signature, body);
-
-		if (!isValid) {
-			console.log('Invalid signature');
-			return createJsonResponse({ error: 'Invalid signature' }, 403);
-		}
-
-		console.log('Signature validation successful');
-
-		try {
-			const jsonBody = JSON.parse(body);
-			console.log('Parsed JSON body:', JSON.stringify(jsonBody, null, 2));
-
-			// Process the webhook payload
-			if (jsonBody.object === 'instagram' && Array.isArray(jsonBody.entry)) {
-				console.log('Processing Instagram webhook payload');
-				for (const entry of jsonBody.entry) {
-					console.log('Processing entry:', JSON.stringify(entry, null, 2));
-					if (entry.messaging) {
-						console.log('Processing messaging field');
-						await processField('messaging', entry.messaging, { instagram, db } as App, env);
-					} else if (entry.changes) {
-						for (const change of entry.changes) {
-							console.log('Processing change:', JSON.stringify(change, null, 2));
-							await processField(change.field, change.value, { instagram, db } as App, env);
-						}
-					} else {
-						console.log('No messaging or changes field found in entry');
-					}
-				}
-				console.log('Webhook processing completed');
-				return createJsonResponse({ message: 'Webhook processed successfully' }, 200);
-			} else {
-				console.log('Unexpected webhook payload structure');
-				return createJsonResponse({ error: 'Unexpected webhook payload structure' }, 400);
-			}
-		} catch (error) {
-			console.error('Error processing webhook payload:', error);
-			return createJsonResponse({ error: 'Error processing webhook' }, 400);
-		}
-	}
-
-	let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
-		env.INSTAGRAM_BOT_TOKEN
-	);
-
-	if (!instagram_professional_user) {
-		instagram_professional_user = await fetchInstagramUser(instagram, db, env.INSTAGRAM_BOT_TOKEN);
-		if (!instagram_professional_user) {
-			return createJsonResponse({ error: 'Failed to fetch Instagram user' }, 500);
-		}
-	}
-
-	const app: App = { instagram, db, corsHeaders, isLocalhost, instagram_professional_user };
-	const response = await router.handle(request, app, env, ctx);
-
-	return new Response(response.body, {
-		status: response.status,
-		statusText: response.statusText,
-		headers: {
-			...securityHeaders,
-			...response.headers,
-			...corsHeaders,
-		},
-	});
-};
-
-const router = Router();
-
-router.get('/', (request: Request, app: App, env: Env) => {
-	const url = new URL(request.url);
-	const mode = url.searchParams.get('hub.mode');
-	const token = url.searchParams.get('hub.verify_token');
-	const challenge = url.searchParams.get('hub.challenge');
-
-	if (mode === 'subscribe' && token) {
-		if (token === env.WEBHOOK_VERIFY_TOKEN) {
-			return new Response(challenge || '', { status: 200 });
-		} else {
-			return createJsonResponse({ error: 'Forbidden' }, 403);
-		}
-	}
-
-	return new Response(
-		'This instagram bot is deployed correctly. No user-serviceable parts inside.',
-		{ status: 200 }
-	);
-});
-
-router.options(
-	'/miniApp/*',
-	(request: Request, app: App, env: Env) =>
-		new Response('Success', {
-			headers: {
-				...app.corsHeaders,
-			},
-			status: 200,
-		})
-);
-
-router.all('*', () => createJsonResponse({ error: 'Not found' }, 404));
 
 function isInstagramApiResponse(response: any): response is {
 	id: string;
@@ -210,6 +68,128 @@ function isInstagramApiResponse(response: any): response is {
 	);
 }
 
+const corsConfig = {
+	origin: (origin: string) => origin, // Adjust as needed
+	allowMethods: ['GET', 'POST', 'OPTIONS'],
+	allowHeaders: ['Content-Type', 'Authorization', 'X-Hub-Signature-256'],
+	maxAge: 86400,
+};
+
+const { preflight, corsify } = cors(corsConfig);
+
+const verifySignature = async (request: IRequest, env: Env) => {
+	if (request.method !== 'OPTIONS') {
+		const signature = request.headers.get('X-Hub-Signature-256');
+		if (!signature) {
+			return error(400, 'Missing signature');
+		}
+
+		const xhub = new XHubSignature('sha256', env.INSTAGRAM_APP_SECRET);
+
+		// Use the parsed content instead of parsing the body manually
+		const body = JSON.stringify(request.content);
+		console.log('Request body:', body);
+
+		const isValid = await xhub.verify(signature, body);
+
+		if (!isValid) {
+			return error(403, 'Invalid signature');
+		}
+
+		console.log('Signature validation successful');
+	}
+};
+
+const securityHeaders = {
+	'Content-Security-Policy':
+		"default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self';",
+	'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+	'X-Content-Type-Options': 'nosniff',
+	'Referrer-Policy': 'no-referrer-when-downgrade',
+};
+
+const router = AutoRouter<IRequest, [Env, ExecutionContext]>({
+	base: '/',
+	before: [preflight, withContent, verifySignature],
+	catch: err => {
+		console.error('Error:', err);
+		return error(500, 'Internal Server Error');
+	},
+	finally: [
+		corsify,
+		response => {
+			Object.entries(securityHeaders).forEach(([key, value]) => {
+				response.headers.set(key, value);
+			});
+			return response;
+		},
+	],
+});
+
+router.get('/', (request, env) => {
+	const url = new URL(request.url);
+	const mode = url.searchParams.get('hub.mode');
+	const token = url.searchParams.get('hub.verify_token');
+	const challenge = url.searchParams.get('hub.challenge');
+
+	if (mode === 'subscribe' && token) {
+		if (token === env.WEBHOOK_VERIFY_TOKEN) {
+			return challenge ? new Response(challenge) : error(400, 'Missing challenge');
+		} else {
+			return error(403, 'Forbidden');
+		}
+	}
+
+	return new Response(
+		'This instagram bot is deployed correctly. No user-serviceable parts inside.'
+	);
+});
+
+router.post('/', async (request, env) => {
+	const body = request.content;
+	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
+	const db = new Database(env.DB);
+
+	if (body.object === 'instagram' && Array.isArray(body.entry)) {
+		for (const entry of body.entry) {
+			if (entry.messaging) {
+				await processField('messaging', entry.messaging, { instagram, db } as App, env);
+			} else if (entry.changes) {
+				for (const change of entry.changes) {
+					await processField(change.field, change.value, { instagram, db } as App, env);
+				}
+			}
+		}
+		return json({ message: 'Webhook processed successfully' });
+	}
+
+	return error(400, 'Unexpected webhook payload structure');
+});
+
+router.all('*', () => error(404, 'Not found'));
+
 export default {
-	fetch: handle,
+	fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
+		const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
+		const db = new Database(env.DB);
+		const isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
+
+		let instagram_professional_user = await db.getInstagramProfessionalUserByToken(
+			env.INSTAGRAM_BOT_TOKEN
+		);
+
+		if (!instagram_professional_user) {
+			instagram_professional_user = await fetchInstagramUser(
+				instagram,
+				db,
+				env.INSTAGRAM_BOT_TOKEN
+			);
+			if (!instagram_professional_user) {
+				return error(500, 'Failed to fetch Instagram user');
+			}
+		}
+
+		const app: App = { instagram, db, corsHeaders: {}, isLocalhost, instagram_professional_user };
+		return router.fetch(request, env, ctx);
+	},
 };

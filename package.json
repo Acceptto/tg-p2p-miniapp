@@ -1,10 +1,10 @@
 {
 	"name": "template-worker-router",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy worker/index.ts",
-		"dev": "wrangler dev worker/index.ts --local true",
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy",
 		"dev:db:init": "wrangler d1 execute DB --file worker/sql/init.sql --local",
 		"dev:db:drop": "wrangler d1 execute DB --file worker/sql/drop.sql  --local",
 		"type-check": "tsc --noEmit"

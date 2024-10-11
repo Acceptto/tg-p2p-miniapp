@@ -11,7 +11,7 @@ export interface App {
 
 export interface Env {
 	INSTAGRAM_BOT_TOKEN: string;
-	DB: any; // Replace 'any' with your actual database type if possible
+	DB: D1Database;
 	FRONTEND_URL: string;
 	WEBHOOK_VERIFY_TOKEN: string;
 	INSTAGRAM_APP_SECRET: string;
