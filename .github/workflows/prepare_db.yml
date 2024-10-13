@@ -40,9 +40,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
       - name: Install Cloudflare Workers CLI and tomlq
         run: |
           npm install -g wrangler
+          python -m venv venv
+          source venv/bin/activate
           pip install yq
 
       - name: Create the D1 database
@@ -64,6 +71,7 @@ jobs:
 
       - name: Replace database id in wrangler.toml
         run: |
+          source venv/bin/activate
           sed -i -e 's/${{ inputs.d1_database_id }}/${{ steps.get_db_id_by_name.outputs.uuid }}/g' wrangler.toml
           cat wrangler.toml
 

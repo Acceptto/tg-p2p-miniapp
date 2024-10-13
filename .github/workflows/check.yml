@@ -81,20 +81,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install tomlq
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install tomlq in virtual environment
         run: |
-          python3 -m venv venv
+          python -m venv venv
           source venv/bin/activate
           pip install yq
 
       - name: Parse toml to get worker name
         id: determine_worker
         run: |
+          source venv/bin/activate
           tomlq -r .name ./wrangler.toml | echo name=$(cat) >> $GITHUB_OUTPUT
 
       - name: Parse toml to get database name and id
         id: determine_database
         run: |
+          source venv/bin/activate
           tomlq -r .d1_databases[0].database_name ./wrangler.toml | echo name=$(cat) >> $GITHUB_OUTPUT
           tomlq -r .d1_databases[0].database_id ./wrangler.toml | echo id=$(cat) >> $GITHUB_OUTPUT
 
