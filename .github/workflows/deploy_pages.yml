@@ -41,7 +41,7 @@ jobs:
           npm run build
           wrangler pages project create ${{ inputs.pages_name }} --production-branch main || true
           wrangler pages deploy ./dist --project-name ${{ inputs.pages_name }}
- 
+
       - name: Call CloudFlare API to find Pages URL
         id: get_pages_url
         env:
