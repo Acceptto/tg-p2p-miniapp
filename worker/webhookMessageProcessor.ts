@@ -166,11 +166,11 @@ async function handleTravelMessage(
 		'Witness the magical Northern Lights',
 	];
 	const websiteUrls = [
-		'https://www.telegram-p2p.pages.dev',
-		'https://www.telegram-p2p.pages.dev',
-		'https://www.telegram-p2p.pages.dev',
-		'https://www.telegram-p2p.pages.dev',
-		'https://www.telegram-p2p.pages.dev',
+		'https://telegram-p2p.pages.dev',
+		'https://telegram-p2p.pages.dev',
+		'https://telegram-p2p.pages.dev',
+		'https://telegram-p2p.pages.dev',
+		'https://telegram-p2p.pages.dev',
 	];
 	const firstButtonTitles = [
 		'Book Amalfi Tour',
