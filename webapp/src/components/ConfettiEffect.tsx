@@ -6,7 +6,7 @@ export const ConfettiEffect: React.FC = () => {
 		const scalar = 2;
 		const unicorn = confetti.shapeFromText({ text: '🦄', scalar });
 
-		const defaults = {
+		const defaults: confetti.Options = {
 			spread: 360,
 			ticks: 60,
 			gravity: 0,
@@ -25,7 +25,6 @@ export const ConfettiEffect: React.FC = () => {
 			confetti({
 				...defaults,
 				particleCount: 5,
-				flat: true,
 			});
 
 			confetti({
