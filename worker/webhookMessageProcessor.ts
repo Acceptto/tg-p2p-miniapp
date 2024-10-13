@@ -1,5 +1,6 @@
-import { App, Env } from './types';
+import { Env } from './types/application';
 import { Instagram } from './instagram';
+import { DatabaseClient } from './types/database';
 
 interface MessageValue {
 	sender?: { id: string };
@@ -21,14 +22,20 @@ interface MessageValue {
 	};
 }
 
-export async function processField(field: string, value: any, app: App, env: Env): Promise<void> {
+export async function processField(
+	field: string,
+	value: any,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
+	env: Env
+): Promise<void> {
 	console.log(`Processing field: ${field}`);
 	console.log('Field value:', JSON.stringify(value, null, 2));
 
 	if (field === 'messaging') {
 		if (Array.isArray(value) && value.length > 0) {
 			for (const message of value) {
-				await processMessage(message, app, env);
+				await processMessage(message, instagram, databaseClient, env);
 			}
 		} else {
 			console.log('Messaging field is empty or not an array');
@@ -38,7 +45,12 @@ export async function processField(field: string, value: any, app: App, env: Env
 	}
 }
 
-async function processMessage(message: MessageValue, app: App, env: Env): Promise<void> {
+async function processMessage(
+	message: MessageValue,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
+	env: Env
+): Promise<void> {
 	console.log('Processing message:', JSON.stringify(message, null, 2));
 
 	if (message.sender?.id && message.recipient?.id) {
@@ -48,14 +60,22 @@ async function processMessage(message: MessageValue, app: App, env: Env): Promis
 
 		if (message.postback) {
 			console.log('Processing ice breaker postback');
-			await handlePostback(message.sender.id, message.recipient.id, message.postback, app, env);
+			await handlePostback(
+				message.sender.id,
+				message.recipient.id,
+				message.postback,
+				instagram,
+				databaseClient,
+				env
+			);
 		} else if (message.message?.text) {
 			console.log(`Processing message text: ${message.message.text}`);
 			await handleMessageText(
 				message.sender.id,
 				message.recipient.id,
 				message.message.text,
-				app,
+				instagram,
+				databaseClient,
 				env
 			);
 		} else if (message.message?.attachments) {
@@ -64,7 +84,8 @@ async function processMessage(message: MessageValue, app: App, env: Env): Promis
 				message.sender.id,
 				message.recipient.id,
 				message.message.attachments,
-				app,
+				instagram,
+				databaseClient,
 				env
 			);
 		} else {
@@ -79,7 +100,8 @@ async function handlePostback(
 	senderId: string,
 	recipientId: string,
 	postback: { title: string; payload: string },
-	app: App,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
 	env: Env
 ): Promise<void> {
 	console.log(`Handling postback: ${postback.title} with payload: ${postback.payload}`);
@@ -87,11 +109,11 @@ async function handlePostback(
 	switch (postback.payload.toLowerCase().trim()) {
 		case 'learn_group_buying':
 			console.log('Matched "learn_group_buying" payload from ice breaker');
-			await handleTravelMessage(senderId, recipientId, app, env);
+			await handleTravelMessage(senderId, recipientId, instagram, databaseClient, env);
 			break;
 		default:
 			console.log('Unrecognized postback payload');
-			await sendDefaultReply(senderId, recipientId, app, env);
+			await sendDefaultReply(senderId, recipientId, instagram, databaseClient, env);
 	}
 }
 
@@ -99,21 +121,28 @@ async function handleMessageText(
 	igId: string,
 	igsId: string,
 	text: string,
-	app: App,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
 	env: Env
 ): Promise<void> {
 	switch (text.toLowerCase().trim()) {
 		case 'view_group_buys':
 			console.log('Matched "view_group_buys" command');
-			await handleTravelMessage(igId, igsId, app, env);
+			await handleTravelMessage(igId, igsId, instagram, databaseClient, env);
 			break;
 		default:
 			console.log('Unrecognized command');
-			await sendDefaultReply(igId, igsId, app, env);
+			await sendDefaultReply(igId, igsId, instagram, databaseClient, env);
 	}
 }
 
-async function handleTravelMessage(igId: string, igsId: string, app: App, env: Env): Promise<void> {
+async function handleTravelMessage(
+	igId: string,
+	igsId: string,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
+	env: Env
+): Promise<void> {
 	console.log('Entering handleTravelMessage for igId:', igId, 'and igsId:', igsId);
 	const titles = [
 		'Amalfi Coast Adventure',
@@ -137,11 +166,11 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Witness the magical Northern Lights',
 	];
 	const websiteUrls = [
-		'https://www.google.com/search?q=amalfi+tour',
-		'https://www.google.com/search?q=tokyo+city+tour',
-		'https://www.google.com/search?q=african+safari+tour',
-		'https://www.google.com/search?q=caribbean+cruise+tour',
-		'https://www.google.com/search?q=northern+lights+tour',
+		'https://www.telegram-p2p.pages.dev',
+		'https://www.telegram-p2p.pages.dev',
+		'https://www.telegram-p2p.pages.dev',
+		'https://www.telegram-p2p.pages.dev',
+		'https://www.telegram-p2p.pages.dev',
 	];
 	const firstButtonTitles = [
 		'Book Amalfi Tour',
@@ -158,8 +187,6 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 		'Learn More About Northern Lights',
 	];
 
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
-
 	try {
 		console.log('Sending template message...');
 		const result = await instagram.sendTemplate(
@@ -170,9 +197,7 @@ async function handleTravelMessage(igId: string, igsId: string, app: App, env: E
 			subtitles,
 			websiteUrls,
 			firstButtonTitles,
-			secondButtonTitles,
-			app,
-			env
+			secondButtonTitles
 		);
 
 		console.log('Template message sent successfully:', result);
@@ -185,12 +210,20 @@ async function handleAttachments(
 	senderId: string,
 	recipientId: string,
 	attachments: Array<{ type: string; payload: { url: string } }>,
-	app: App,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
 	env: Env
 ): Promise<void> {
 	for (const attachment of attachments) {
 		if (attachment.type === 'story_mention') {
-			await handleStoryMention(senderId, recipientId, attachment.payload, app, env);
+			await handleStoryMention(
+				senderId,
+				recipientId,
+				attachment.payload,
+				instagram,
+				databaseClient,
+				env
+			);
 		} else {
 			console.log(`Unhandled attachment type: ${attachment.type}`);
 		}
@@ -201,13 +234,13 @@ async function handleStoryMention(
 	igId: string,
 	igsId: string,
 	payload: { url: string },
-	app: App,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
 	env: Env
 ): Promise<void> {
 	console.log(`Handling story mention from ${igId} to ${igsId}`);
 	console.log(`Story mention URL: ${payload.url}`);
 
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	const thankYouMessage =
 		'Thank you for the shout-out in your story! We truly appreciate it. 😊 We’re excited to offer 3 days of free stays to 10 lucky winners. Don’t miss your chance—join now and win!';
 
@@ -234,9 +267,7 @@ async function handleStoryMention(
 			subtitles,
 			websiteUrls,
 			firstButtonTitles,
-			secondButtonTitles,
-			app,
-			env
+			secondButtonTitles
 		);
 
 		console.log('Thank you message and sticker sent successfully');
@@ -247,10 +278,15 @@ async function handleStoryMention(
 	// TODO: Add logic to store the mention or perform other actions
 }
 
-async function sendDefaultReply(igId: string, igsId: string, app: App, env: Env): Promise<void> {
+async function sendDefaultReply(
+	igId: string,
+	igsId: string,
+	instagram: Instagram,
+	databaseClient: DatabaseClient,
+	env: Env
+): Promise<void> {
 	console.log('Sending default reply to senderId:', igId);
 	const message = "I didn't understand that. Available commands: 'view_group_buys'";
-	const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
 	try {
 		const result = await instagram.sendTextMessage(igId, igsId, message);
 		console.log('Default reply sent successfully:', result);

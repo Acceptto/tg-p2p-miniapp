@@ -1,8 +1,26 @@
-# React + Vite
+# `min-react`
+Without much extra boilerplate
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Contents
+```
+src
+├── components      # all React components
+│   ├── Clock.js    # clock that ticks once a second (useState and useEffect example)
+│   ├── Footer.js
+│   └── Header.js
+├── App.js          # main React app
+├── index.css       # root-level styling
+└── index.js        # React entrypoint (where React gets inserted into the page)
+```
 
-Currently, two official plugins are available:
+## Config
+### Styling
+Root page styling is done in `src/index.css`. All component styling is done through [`styled-components`](https://styled-components.com/docs/basics#getting-started) (example in `src/App.js`).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Page Metadata
+To customize the font, page title, page icon, etc. you can customize the page skeleton over in `public/index.html`.
+
+All fonts are served through [Google Fonts](https://fonts.google.com/), you can pick and choose your own over there!
+
+### Deployment
+[Cloudflare]

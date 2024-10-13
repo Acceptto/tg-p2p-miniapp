@@ -3,7 +3,7 @@ import { ExecutionContext } from '@cloudflare/workers-types';
 import { Instagram } from './instagram';
 import { Database, InstagramProfessionalUser } from './databaseClient';
 import { processField } from './webhookMessageProcessor';
-import { App, Env } from './types';
+import { App, Env } from './types/application';
 import XHubSignature from './XHubSignature';
 
 async function fetchInstagramUser(
@@ -24,12 +24,12 @@ async function fetchInstagramUser(
 				app_scoped_id: response.id,
 				user_id: response.user_id,
 				username: response.username,
-				name: response.name || null,
-				account_type: response.account_type || null,
-				profile_picture_url: response.profile_picture_url || null,
-				followers_count: response.followers_count || null,
-				follows_count: response.follows_count || null,
-				media_count: response.media_count || null,
+				name: response.name ?? null,
+				account_type: response.account_type ?? null,
+				profile_picture_url: response.profile_picture_url ?? null,
+				followers_count: response.followers_count ?? null,
+				follows_count: response.follows_count ?? null,
+				media_count: response.media_count ?? null,
 				access_token: token,
 			};
 
@@ -157,10 +157,10 @@ router.post('/', async (request, env, ctx) => {
 	if (body.object === 'instagram' && Array.isArray(body.entry)) {
 		for (const entry of body.entry) {
 			if (entry.messaging) {
-				await processField('messaging', entry.messaging, { instagram, databaseClient } as App, env);
+				await processField('messaging', entry.messaging, instagram, databaseClient, env);
 			} else if (entry.changes) {
 				for (const change of entry.changes) {
-					await processField(change.field, change.value, { instagram, databaseClient } as App, env);
+					await processField(change.field, change.value, instagram, databaseClient, env);
 				}
 			}
 		}
@@ -198,7 +198,6 @@ export default {
 			databaseClient,
 			corsHeaders: {},
 			isLocalhost,
-			instagram_professional_user,
 		};
 		return router.fetch(request, env, ctx);
 	},

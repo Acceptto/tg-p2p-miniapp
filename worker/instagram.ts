@@ -1,4 +1,4 @@
-import { App, Env } from './types';
+import { Env } from './types/application';
 
 /**
  * Represents an API client for interacting with the Instagram Graph API.
@@ -68,9 +68,7 @@ class InstagramAPI {
 		subtitles: string[],
 		websiteUrls: string[],
 		firstButtonTitles: string[],
-		secondButtonTitles: string[],
-		app: App,
-		env: Env
+		secondButtonTitles: string[]
 	): Promise<any> {
 		console.log('Preparing to send template message to igId:', igId);
 		const url = `${this.apiBaseUrl}${igsId}/messages?access_token=${this.token}`;

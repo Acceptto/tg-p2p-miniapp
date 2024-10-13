@@ -11,7 +11,11 @@
 		"esModuleInterop": false, // Adjust based on your imports
 		"skipLibCheck": false,
 		"forceConsistentCasingInFileNames": true,
-		"noUncheckedIndexedAccess": true
+		"noUncheckedIndexedAccess": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"]
+		}
 	},
 	"include": ["**/*.ts"],
 	"exclude": ["node_modules", "dist", "webapp"]

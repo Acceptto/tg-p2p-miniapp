@@ -1,4 +1,8 @@
-import { InstagramProfessionalUser, DatabaseClient } from './types';
+import {
+	DatabaseClient,
+	InstagramProfessionalUser,
+	CreateInstagramProfessionalUser,
+} from './types/database';
 
 /**
  * Represents a database connection and provides methods to interact with Instagram Professional User data.
@@ -54,7 +58,7 @@ class Database implements DatabaseClient {
 	 * @param user - The InstagramProfessionalUser object to save or update.
 	 * @returns A Promise that resolves to a boolean indicating success or failure.
 	 */
-	async saveInstagramProfessionalUser(user: InstagramProfessionalUser): Promise<boolean> {
+	async saveInstagramProfessionalUser(user: CreateInstagramProfessionalUser): Promise<boolean> {
 		const query = `
 								INSERT INTO instagramProfessionalUser (
 												app_scoped_id, user_id, username, name, account_type, profile_picture_url,
@@ -99,4 +103,4 @@ class Database implements DatabaseClient {
 }
 
 export { Database };
-export type { InstagramProfessionalUser };
+export type { InstagramProfessionalUser, CreateInstagramProfessionalUser };
