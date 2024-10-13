@@ -8,15 +8,17 @@
 		"isolatedModules": true,
 		"strict": true,
 		"noEmit": true,
-		"esModuleInterop": false, // Adjust based on your imports
+		"esModuleInterop": false,
 		"skipLibCheck": false,
 		"forceConsistentCasingInFileNames": true,
 		"noUncheckedIndexedAccess": true,
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./*"]
-		}
+		},
+		"exactOptionalPropertyTypes": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true
 	},
-	"include": ["**/*.ts"],
-	"exclude": ["node_modules", "dist", "webapp"]
+	"include": ["**/*.ts"]
 }
