@@ -83,6 +83,8 @@ jobs:
 
       - name: Install tomlq
         run: |
+          python3 -m venv venv
+          source venv/bin/activate
           pip install yq
 
       - name: Parse toml to get worker name
