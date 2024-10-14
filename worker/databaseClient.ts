@@ -2,6 +2,8 @@ import {
 	DatabaseClient,
 	InstagramProfessionalUser,
 	CreateInstagramProfessionalUser,
+	InstagramUserInteraction,
+	CreateInstagramUserInteraction,
 } from './types/database';
 
 /**
@@ -100,7 +102,79 @@ class Database implements DatabaseClient {
 			return false;
 		}
 	}
+
+	/**
+	 * Inserts a new Instagram user interaction into the database.
+	 * @param interaction - The Instagram user interaction object to insert.
+	 * @returns A Promise that resolves to a boolean indicating success or failure.
+	 */
+	async insertInstagramUserInteraction(
+		interaction: CreateInstagramUserInteraction
+	): Promise<boolean> {
+		const query = `
+      INSERT INTO instagramUserInteraction (
+        instagram_scoped_id, professional_user_id, timestamp, additional_data
+      ) VALUES (?, ?, ?, json(?))
+    `;
+
+		try {
+			console.log('Inserting Instagram user interaction:', JSON.stringify(interaction, null, 2));
+			const result = await this.db
+				.prepare(query)
+				.bind(
+					interaction.instagram_scoped_id,
+					interaction.professional_user_id,
+					interaction.timestamp,
+					JSON.stringify(interaction.additional_data) // Using D1's json() function
+				)
+				.run();
+			console.log('Database operation result:', JSON.stringify(result, null, 2));
+			return result.success;
+		} catch (error) {
+			console.error('Error inserting Instagram user interaction:', error);
+			console.error('Interaction data:', JSON.stringify(interaction, null, 2));
+			return false;
+		}
+	}
+
+	async getInstagramUserInteractions(
+		professionalUserId: string,
+		limit: number = 10
+	): Promise<InstagramUserInteraction[]> {
+		const query = `
+      SELECT
+        id,
+        instagram_scoped_id,
+        professional_user_id,
+        timestamp
+      FROM instagramUserInteraction
+      WHERE professional_user_id = ?
+      ORDER BY timestamp DESC
+      LIMIT ?
+    `;
+
+		try {
+			const result = await this.db.prepare(query).bind(professionalUserId, limit).all();
+
+			return (result.results as any[]).map(
+				(row): InstagramUserInteraction => ({
+					id: row.id,
+					instagram_scoped_id: row.instagram_scoped_id,
+					professional_user_id: row.professional_user_id,
+					timestamp: row.timestamp,
+					additional_data: row.additional_data,
+				})
+			);
+		} catch (error) {
+			console.error('Error retrieving Instagram user interactions:', error);
+			return [];
+		}
+	}
 }
 
 export { Database };
-export type { InstagramProfessionalUser, CreateInstagramProfessionalUser };
+export type {
+	InstagramProfessionalUser,
+	CreateInstagramProfessionalUser,
+	InstagramUserInteraction,
+};

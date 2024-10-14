@@ -12,7 +12,16 @@ export interface InstagramProfessionalUser {
 	access_token: string;
 }
 
+export interface InstagramUserInteraction {
+	id: number;
+	instagram_scoped_id: string;
+	professional_user_id: string;
+	timestamp: string;
+	additional_data: any; // JSON-serializable data
+}
+
 export interface CreateInstagramProfessionalUser extends Omit<InstagramProfessionalUser, 'id'> {}
+export interface CreateInstagramUserInteraction extends Omit<InstagramUserInteraction, 'id'> {}
 
 export interface DatabaseClient {
 	getInstagramProfessionalUserByToken(
@@ -20,4 +29,5 @@ export interface DatabaseClient {
 	): Promise<InstagramProfessionalUser | null>;
 	getInstagramProfessionalUserByIGID(userId: string): Promise<InstagramProfessionalUser | null>;
 	saveInstagramProfessionalUser(user: CreateInstagramProfessionalUser): Promise<boolean>;
+	insertInstagramUserInteraction(interaction: CreateInstagramUserInteraction): Promise<boolean>;
 }

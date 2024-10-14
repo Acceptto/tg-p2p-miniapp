@@ -1,5 +1,5 @@
 import { Instagram } from '../instagram';
-import { DatabaseClient, InstagramProfessionalUser } from '../types/database';
+import { DatabaseClient } from '../types/database';
 
 /**
  * Environment variables and bindings for the Cloudflare Workers application.
