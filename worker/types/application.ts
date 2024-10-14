@@ -32,6 +32,4 @@ export interface Env {
 export interface App {
 	instagram: Instagram;
 	databaseClient: DatabaseClient;
-	isLocalhost: boolean;
-	getInstagramUser: () => Promise<InstagramProfessionalUser | null>;
 }

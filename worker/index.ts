@@ -72,16 +72,22 @@ const createRouter = (env: Env) => {
 
 	router.post('/', async (request, env, ctx) => {
 		const body = (request as any).parsedBody;
-		const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
-		const databaseClient = new Database(env.DB);
+
+		const app: App = {
+			instagram: new Instagram(env.INSTAGRAM_BOT_TOKEN, env),
+			databaseClient: new Database(env.DB),
+		};
+
+		// Lazy Instagram user check
+		ctx.waitUntil(getInstagramUser(env, app));
 
 		if (body?.object === 'instagram' && Array.isArray(body.entry)) {
 			for (const entry of body.entry) {
 				if (entry.messaging) {
-					await processField('messaging', entry.messaging, instagram, databaseClient, env);
+					await processField('messaging', entry.messaging, app.instagram, app.databaseClient, env);
 				} else if (entry.changes) {
 					for (const change of entry.changes) {
-						await processField(change.field, change.value, instagram, databaseClient, env);
+						await processField(change.field, change.value, app.instagram, app.databaseClient, env);
 					}
 				}
 			}
@@ -96,15 +102,10 @@ const createRouter = (env: Env) => {
 	return router;
 };
 
-// Create router once
-let router: ReturnType<typeof createRouter>;
-
-const getInstagramUser = async (env: Env): Promise<InstagramProfessionalUser | null> => {
-	const databaseClient = new Database(env.DB);
-	let user = await databaseClient.getInstagramProfessionalUserByToken(env.INSTAGRAM_BOT_TOKEN);
+const getInstagramUser = async (env: Env, app: App): Promise<InstagramProfessionalUser | null> => {
+	let user = await app.databaseClient.getInstagramProfessionalUserByToken(env.INSTAGRAM_BOT_TOKEN);
 	if (!user) {
-		const instagram = new Instagram(env.INSTAGRAM_BOT_TOKEN, env);
-		const response = await instagram.getMe();
+		const response = await app.instagram.getMe();
 		if (response && !response.error) {
 			user = {
 				app_scoped_id: response.id,
@@ -118,28 +119,20 @@ const getInstagramUser = async (env: Env): Promise<InstagramProfessionalUser | n
 				media_count: response.media_count ?? null,
 				access_token: env.INSTAGRAM_BOT_TOKEN,
 			};
-			await databaseClient.saveInstagramProfessionalUser(user);
+			await app.databaseClient.saveInstagramProfessionalUser(user);
 		}
 	}
 	return user;
 };
 
 export default {
-	fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
-		// Lazy initialize router
-		if (!router) {
-			router = createRouter(env);
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		try {
+			const router = createRouter(env);
+			return router.fetch(request, env, ctx);
+		} catch (error) {
+			console.error(error);
+			return new Response('An unexpected error occurred', { status: 500 });
 		}
-
-		const app: App = {
-			instagram: new Instagram(env.INSTAGRAM_BOT_TOKEN, env),
-			databaseClient: new Database(env.DB),
-			isLocalhost: request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null,
-			getInstagramUser: () => getInstagramUser(env),
-		};
-
-		// You can use ctx.waitUntil() here if you need to perform any background tasks
-
-		return router.fetch(request, env, ctx);
 	},
-};
+} satisfies ExportedHandler<Env>;
