@@ -228,7 +228,7 @@ class Database implements DatabaseClient {
     INSERT INTO instagramUserProfile (
       instagram_scoped_id, follower_count, is_business_follow_user,
       is_user_follow_business, name, username
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT (instagram_scoped_id) DO UPDATE SET
       follower_count = excluded.follower_count,
       is_business_follow_user = excluded.is_business_follow_user,
