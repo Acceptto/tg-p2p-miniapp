@@ -56,7 +56,7 @@ class InstagramAPI {
 		body: any,
 		app: App
 	): Promise<{ profileSaved: boolean; interactionSaved: boolean }> {
-		const senderId = body.entry[0]?.messaging?.[0]?.sender?.id;
+		const senderId = body.entry[0]?.messaging?.[0]?.recipient?.id;
 		if (!senderId) {
 			throw new Error('Sender ID not found in the webhook data');
 		}
