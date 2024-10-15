@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS instagramUserProfile (
     follower_count INTEGER,
     is_business_follow_user BOOLEAN,
     is_user_follow_business BOOLEAN,
-    is_verified_user BOOLEAN,
     name VARCHAR(255),
     username VARCHAR(255) NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

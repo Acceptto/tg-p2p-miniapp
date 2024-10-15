@@ -215,6 +215,80 @@ class Database implements DatabaseClient {
 			return [];
 		}
 	}
+
+	async saveProfileAndInteraction(
+		profile: InstagramUserProfile,
+		interaction: CreateInstagramUserInteraction
+	): Promise<{
+		profileSaved: boolean;
+		interactionSaved: boolean;
+		isNewProfile: boolean;
+	}> {
+		const profileQuery = `
+    INSERT INTO instagramUserProfile (
+      instagram_scoped_id, follower_count, is_business_follow_user,
+      is_user_follow_business, name, username
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (instagram_scoped_id) DO UPDATE SET
+      follower_count = excluded.follower_count,
+      is_business_follow_user = excluded.is_business_follow_user,
+      is_user_follow_business = excluded.is_user_follow_business,
+      name = excluded.name,
+      username = excluded.username,
+      updated_at = CURRENT_TIMESTAMP
+    RETURNING (changes() = 0) AS is_updated;
+  `;
+
+		const interactionQuery = `
+    INSERT INTO instagramUserInteraction (
+      instagram_scoped_id, professional_user_id, timestamp, additional_data
+    ) VALUES (?, ?, ?, json(?));
+  `;
+
+		try {
+			const results = await this.db.batch([
+				this.db
+					.prepare(profileQuery)
+					.bind(
+						profile.instagram_scoped_id,
+						profile.follower_count,
+						profile.is_business_follow_user,
+						profile.is_user_follow_business,
+						profile.name || null,
+						profile.username
+					),
+				this.db
+					.prepare(interactionQuery)
+					.bind(
+						interaction.instagram_scoped_id,
+						interaction.professional_user_id,
+						interaction.timestamp,
+						JSON.stringify(interaction.additional_data)
+					),
+			]);
+
+			// Explicitly type and check the results
+			const profileResult = results[0] as D1Result<{ is_updated: number }> | undefined;
+			const interactionResult = results[1] as D1Result<{}> | undefined;
+
+			const profileSaved = profileResult?.success ?? false;
+			const interactionSaved = interactionResult?.success ?? false;
+			const isNewProfile = profileResult?.results?.[0]?.is_updated === 0;
+
+			return {
+				profileSaved,
+				interactionSaved,
+				isNewProfile,
+			};
+		} catch (error: any) {
+			console.error('Error saving profile and interaction:', error.message);
+			return {
+				profileSaved: false,
+				interactionSaved: false,
+				isNewProfile: false,
+			};
+		}
+	}
 }
 
 export { Database };

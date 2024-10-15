@@ -100,13 +100,13 @@ class InstagramAPI {
 				additional_data: body,
 			};
 
-			const profileSaved = await app.databaseClient.saveInstagramUserProfile(profile);
-			const interactionSaved = await app.databaseClient.insertInstagramUserInteraction(interaction);
+			const result = await app.databaseClient.saveProfileAndInteraction(profile, interaction);
+			// const profileSaved = await app.databaseClient.saveInstagramUserProfile(profile);
+			// const interactionSaved = await app.databaseClient.insertInstagramUserInteraction(interaction);
 
-			console.log('Instagram API response for getUserProfile:', data);
-			console.log('Profile and interaction save result:', { profileSaved, interactionSaved });
+			console.log('Profile and interaction save result:', result);
 
-			return { profileSaved, interactionSaved };
+			return result;
 		} catch (error) {
 			console.error('Error processing Instagram user profile:', error);
 			throw error;
