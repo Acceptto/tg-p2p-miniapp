@@ -56,12 +56,12 @@ class InstagramAPI {
 		body: any,
 		app: App
 	): Promise<{ profileSaved: boolean; interactionSaved: boolean }> {
-		const senderId = body.entry[0]?.messaging?.[0]?.recipient?.id;
+		const senderId = body.entry[0]?.messaging?.[0]?.sender?.id;
 		if (!senderId) {
 			throw new Error('Sender ID not found in the webhook data');
 		}
 
-		const url = `${this.apiBaseUrl}${senderId}?fields=name,username,follower_count,is_verified,is_user_follow_business,is_business_follow_user&access_token=${this.token}`;
+		const url = `${this.apiBaseUrl}${senderId}?fields=name,username,follower_count,is_user_follow_business,is_business_follow_user&access_token=${this.token}`;
 		console.log('Fetching instagram profile data from Instagram API:', url);
 
 		try {
