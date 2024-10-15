@@ -4,7 +4,6 @@ import { Instagram } from './instagram';
 import { Database, InstagramProfessionalUser } from './databaseClient';
 import { processField } from './webhookMessageProcessor';
 import { App, Env } from './types/application';
-import { CreateInstagramUserInteraction } from './types/database';
 import XHubSignature from './XHubSignature';
 
 const securityHeaders = {
@@ -82,13 +81,7 @@ const createRouter = (env: Env) => {
 		// Lazy Instagram user check
 		ctx.waitUntil(getInstagramUser(env, app));
 
-		const interaction: CreateInstagramUserInteraction = {
-			instagram_scoped_id: body.entry[0]?.messaging?.[0]?.sender?.id || null,
-			professional_user_id: body.entry[0].id,
-			timestamp: new Date().toISOString(),
-			additional_data: body,
-		};
-		ctx.waitUntil(app.databaseClient.insertInstagramUserInteraction(interaction));
+		ctx.waitUntil(app.instagram.processInstagramUserProfile(body, app));
 
 		if (body?.object === 'instagram' && Array.isArray(body.entry)) {
 			for (const entry of body.entry) {

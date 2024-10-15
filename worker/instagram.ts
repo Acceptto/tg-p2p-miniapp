@@ -1,4 +1,5 @@
-import { Env } from './types/application';
+import { Env, App } from './types/application';
+import { InstagramUserProfile, CreateInstagramUserInteraction } from './types/database';
 
 /**
  * Represents an API client for interacting with the Instagram Graph API.
@@ -18,7 +19,7 @@ class InstagramAPI {
 	}
 
 	/**
-	 * Fetches the current user's Instagram profile information.
+	 * Fetches the current user's Business Instagram profile information.
 	 *
 	 * @param token - Optional access token to use for the API request. If not provided, the instance's token will be used.
 	 * @returns A Promise that resolves to the user's profile data.
@@ -27,7 +28,7 @@ class InstagramAPI {
 	async getMe(token?: string): Promise<any> {
 		const useToken = token || this.token;
 		const url = `${this.apiBaseUrl}me?fields=id,user_id,username,name,account_type,profile_picture_url,followers_count,follows_count,media_count&access_token=${useToken}`;
-		console.log('Fetching user data from Instagram API:', url);
+		console.log('Fetching business user data from Instagram API:', url);
 		try {
 			const response = await fetch(url, {
 				method: 'GET',
@@ -39,7 +40,75 @@ class InstagramAPI {
 			console.log('Instagram API response for getMe:', data);
 			return data;
 		} catch (error) {
-			console.error('Error fetching user data from Instagram API:', error);
+			console.error('Error fetching business user data from Instagram API:', error);
+			throw error;
+		}
+	}
+	/**
+	 * Processes an Instagram user's profile information.
+	 *
+	 * @param body - The request body containing Instagram webhook data.
+	 * @param app - The App object for database operations.
+	 * @returns A Promise that resolves to a boolean indicating success of saving the profile.
+	 * @throws Will throw an error if the API request fails or if database operations fail.
+	 */
+	async processInstagramUserProfile(
+		body: any,
+		app: App
+	): Promise<{ profileSaved: boolean; interactionSaved: boolean }> {
+		const senderId = body.entry[0]?.messaging?.[0]?.sender?.id;
+		if (!senderId) {
+			throw new Error('Sender ID not found in the webhook data');
+		}
+
+		const url = `${this.apiBaseUrl}${senderId}?fields=name,username,follower_count,is_verified,is_user_follow_business,is_business_follow_user&access_token=${this.token}`;
+		console.log('Fetching instagram profile data from Instagram API:', url);
+
+		try {
+			const response = await fetch(url, {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/json' },
+			});
+
+			if (!response.ok) {
+				throw new Error(`API request failed with status ${response.status}`);
+			}
+
+			const data = (await response.json()) as {
+				follower_count: number;
+				is_business_follow_user: boolean;
+				is_user_follow_business: boolean;
+				name: string;
+				username: string;
+				is_verified: boolean;
+			};
+
+			const profile: InstagramUserProfile = {
+				instagram_scoped_id: senderId,
+				follower_count: data.follower_count,
+				is_business_follow_user: data.is_business_follow_user,
+				is_user_follow_business: data.is_user_follow_business,
+				is_verified_user: data.is_verified,
+				name: data.name,
+				username: data.username,
+			};
+
+			const interaction: CreateInstagramUserInteraction = {
+				instagram_scoped_id: senderId,
+				professional_user_id: body.entry[0].id,
+				timestamp: new Date().toISOString(),
+				additional_data: body,
+			};
+
+			const profileSaved = await app.databaseClient.saveInstagramUserProfile(profile);
+			const interactionSaved = await app.databaseClient.insertInstagramUserInteraction(interaction);
+
+			console.log('Instagram API response for getUserProfile:', data);
+			console.log('Profile and interaction save result:', { profileSaved, interactionSaved });
+
+			return { profileSaved, interactionSaved };
+		} catch (error) {
+			console.error('Error processing Instagram user profile:', error);
 			throw error;
 		}
 	}

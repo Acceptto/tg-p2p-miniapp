@@ -4,6 +4,7 @@ import {
 	CreateInstagramProfessionalUser,
 	InstagramUserInteraction,
 	CreateInstagramUserInteraction,
+	InstagramUserProfile,
 } from './types/database';
 
 /**
@@ -104,6 +105,50 @@ class Database implements DatabaseClient {
 	}
 
 	/**
+	 * Saves or updates an Instagram User Profile in the database.
+	 * @param profile - The Instagram User Profile object to save or update.
+	 * @returns A Promise that resolves to a boolean indicating success or failure.
+	 */
+	async saveInstagramUserProfile(profile: InstagramUserProfile): Promise<boolean> {
+		const query = `
+			INSERT INTO instagramUserProfile (
+				instagram_scoped_id, follower_count, is_business_follow_user,
+				is_user_follow_business, is_verified_user, name, username
+			) VALUES (?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT (instagram_scoped_id) DO UPDATE SET
+				follower_count = excluded.follower_count,
+				is_business_follow_user = excluded.is_business_follow_user,
+				is_user_follow_business = excluded.is_user_follow_business,
+				is_verified_user = excluded.is_verified_user,
+				name = excluded.name,
+				username = excluded.username,
+				updated_at = CURRENT_TIMESTAMP
+		`;
+
+		try {
+			console.log('Saving Instagram user profile:', JSON.stringify(profile, null, 2));
+			const result = await this.db
+				.prepare(query)
+				.bind(
+					profile.instagram_scoped_id,
+					profile.follower_count,
+					profile.is_business_follow_user,
+					profile.is_user_follow_business,
+					profile.is_verified_user || false, // Assuming false if not provided
+					profile.name || null,
+					profile.username
+				)
+				.run();
+			console.log('Database operation result:', JSON.stringify(result, null, 2));
+			return result.success;
+		} catch (error) {
+			console.error('Error saving Instagram user profile:', error);
+			console.error('Profile data:', JSON.stringify(profile, null, 2));
+			return false;
+		}
+	}
+
+	/**
 	 * Inserts a new Instagram user interaction into the database.
 	 * @param interaction - The Instagram user interaction object to insert.
 	 * @returns A Promise that resolves to a boolean indicating success or failure.
@@ -177,4 +222,5 @@ export type {
 	InstagramProfessionalUser,
 	CreateInstagramProfessionalUser,
 	InstagramUserInteraction,
+	InstagramUserProfile,
 };

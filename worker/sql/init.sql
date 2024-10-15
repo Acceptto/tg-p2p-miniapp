@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS instagramUserInteraction (
     timestamp DATETIME NOT NULL,
     additional_data JSON,
     FOREIGN KEY (professional_user_id) REFERENCES instagramProfessionalUser(user_id)
---    FOREIGN KEY (instagram_scoped_id) REFERENCES instagramUserProfile(instagram_scoped_id)
+    FOREIGN KEY (instagram_scoped_id) REFERENCES instagramUserProfile(instagram_scoped_id)
 );
 
 -- Create indexes for optimizing queries

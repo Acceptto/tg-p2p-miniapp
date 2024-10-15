@@ -12,6 +12,16 @@ export interface InstagramProfessionalUser {
 	access_token: string;
 }
 
+export interface InstagramUserProfile {
+	instagram_scoped_id: string;
+	follower_count: number;
+	is_business_follow_user: boolean;
+	is_user_follow_business: boolean;
+	is_verified_user?: boolean;
+	name?: string;
+	username: string;
+}
+
 export interface InstagramUserInteraction {
 	id: number;
 	instagram_scoped_id: string;
@@ -30,4 +40,5 @@ export interface DatabaseClient {
 	getInstagramProfessionalUserByIGID(userId: string): Promise<InstagramProfessionalUser | null>;
 	saveInstagramProfessionalUser(user: CreateInstagramProfessionalUser): Promise<boolean>;
 	insertInstagramUserInteraction(interaction: CreateInstagramUserInteraction): Promise<boolean>;
+	saveInstagramUserProfile(profile: InstagramUserProfile): Promise<boolean>;
 }
