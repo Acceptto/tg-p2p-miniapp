@@ -1,88 +1,54 @@
-/* CSS Reset */
-*,
-*::before,
-*::after {
+/* Basic reset */
+* {
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
 }
 
-html {
-	font-size: 16px;
-	scroll-behavior: smooth;
-}
-
-body {
-	font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	line-height: 1.5;
-
-	/* Hide scrollbars but allow scrolling */
-	overflow: auto;
-	-ms-overflow-style: none;
-	scrollbar-width: none;
-
-	/* Prevent overscroll/bounce */
-	overscroll-behavior: none;
-
-	/* Optimize for mobile */
-	-webkit-text-size-adjust: 100%;
-	-webkit-tap-highlight-color: transparent;
-	touch-action: manipulation;
-}
-
-/* Hide WebKit scrollbar */
-body::-webkit-scrollbar {
-	display: none;
-}
-
-/* Prevent text selection and callouts */
-* {
-	-webkit-user-select: none;
-	user-select: none;
-	-webkit-touch-callout: none;
-}
-
-/* Allow text selection within inputs and textareas */
-input,
-textarea {
-	-webkit-user-select: auto;
-	user-select: auto;
-}
-
-/* Set viewport height to adjust for mobile browser UI */
 html,
 body {
 	height: 100%;
+	width: 100%;
+	overflow-x: hidden;
 }
 
-@supports (-webkit-touch-callout: none) {
-	html,
-	body {
-		height: -webkit-fill-available;
-	}
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-size: 16px;
+	line-height: 1.5;
+	color: #000;
+	background-color: #fff;
+
+	/* Prevent overscroll/bounce in iOS */
+	overscroll-behavior-y: none;
+	-webkit-overflow-scrolling: touch;
+
+	/* Disable text selection */
+	-webkit-user-select: none;
+	user-select: none;
+
+	/* Remove highlight on tap */
+	-webkit-tap-highlight-color: transparent;
+
+	/* Improve touch event handling */
+	touch-action: manipulation;
 }
 
-/* Ensure content is at least full height of the viewport */
-#root {
-	min-height: 100vh;
-	/* Fallback for browsers that do not support Custom Properties */
-	min-height: -webkit-fill-available;
-	min-height: fill-available;
+/* Hide scrollbars */
+::-webkit-scrollbar {
+	display: none;
 }
 
-/* Optimize for iOS safe areas */
-@supports (padding: max(0px)) {
-	body {
-		padding-left: max(0px, env(safe-area-inset-left));
-		padding-right: max(0px, env(safe-area-inset-right));
-		padding-top: max(0px, env(safe-area-inset-top));
-		padding-bottom: max(0px, env(safe-area-inset-bottom));
-	}
+/* Allow text selection in inputs and textareas */
+input,
+textarea {
+	-webkit-user-select: text;
+	user-select: text;
 }
 
-/* Improve form element appearance */
+/* Style form elements consistently */
 input,
 textarea,
 select,
@@ -91,17 +57,26 @@ button {
 	color: inherit;
 }
 
+/* Make buttons feel more app-like */
 button {
-	cursor: pointer;
-	background-color: transparent;
+	background: none;
 	border: none;
+	padding: 10px 15px;
+	cursor: pointer;
+}
+
+/* Ensure content fills the viewport */
+#root {
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Original styles for code and pre */
 code,
 pre {
-	font-family: 'JetBrains Mono', monospace;
-	background: rgba(0, 0, 0, 0.15);
+	font-family: 'Courier New', Courier, monospace;
+	background: rgba(0, 0, 0, 0.05);
 	border-radius: 3px;
 	padding: 0 0.2em;
 }
