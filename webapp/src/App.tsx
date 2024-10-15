@@ -1,22 +1,14 @@
 import React from 'react';
-import { Header } from '@/components/Header';
-import { Clock } from '@/components/Clock';
-import { Footer } from '@/components/Footer';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
-import styled from 'styled-components';
-
-const AppContainer = styled.div`
-	margin: 40vh 30vw;
-`;
+import Giveaway from '@/components/Giveaway';
 
 const App: React.FC = () => {
 	return (
-		<AppContainer>
+		<div className="container mx-auto p-4">
 			<ConfettiEffect />
-			<Header />
-			<Clock />
-			<Footer />
-		</AppContainer>
+			<h1 className="text-3xl font-bold text-center mb-6">Instagram Giveaway</h1>
+			<Giveaway />
+		</div>
 	);
 };
 
