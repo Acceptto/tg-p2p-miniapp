@@ -5,14 +5,16 @@
 	padding: 0;
 }
 
-html,
-body {
+html {
 	height: 100%;
 	width: 100%;
 	overflow-x: hidden;
+	/* Enable smooth scrolling */
+	scroll-behavior: smooth;
 }
 
 body {
+	height: 100%;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -21,9 +23,12 @@ body {
 	color: #000;
 	background-color: #fff;
 
+	/* Improve scroll performance */
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
+
 	/* Prevent overscroll/bounce in iOS */
 	overscroll-behavior-y: none;
-	-webkit-overflow-scrolling: touch;
 
 	/* Disable text selection */
 	-webkit-user-select: none;
@@ -36,9 +41,14 @@ body {
 	touch-action: manipulation;
 }
 
-/* Hide scrollbars */
-::-webkit-scrollbar {
-	display: none;
+/* Hide scrollbars while allowing scrolling */
+body {
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
+}
+
+body::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, and Opera */
 }
 
 /* Allow text selection in inputs and textareas */
@@ -79,4 +89,24 @@ pre {
 	background: rgba(0, 0, 0, 0.05);
 	border-radius: 3px;
 	padding: 0 0.2em;
+}
+
+/* Optimize scrolling for touch devices */
+@media (pointer: coarse) {
+	body {
+		position: fixed;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	#root {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
 }
