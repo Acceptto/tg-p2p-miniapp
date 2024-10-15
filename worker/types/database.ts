@@ -39,8 +39,6 @@ export interface DatabaseClient {
 	): Promise<InstagramProfessionalUser | null>;
 	getInstagramProfessionalUserByIGID(userId: string): Promise<InstagramProfessionalUser | null>;
 	saveInstagramProfessionalUser(user: CreateInstagramProfessionalUser): Promise<boolean>;
-	insertInstagramUserInteraction(interaction: CreateInstagramUserInteraction): Promise<boolean>;
-	saveInstagramUserProfile(profile: InstagramUserProfile): Promise<boolean>;
 	saveProfileAndInteraction(
 		profile: InstagramUserProfile,
 		interaction: CreateInstagramUserInteraction

@@ -105,98 +105,26 @@ class Database implements DatabaseClient {
 	}
 
 	/**
-	 * Saves or updates an Instagram User Profile in the database.
-	 * @param profile - The Instagram User Profile object to save or update.
-	 * @returns A Promise that resolves to a boolean indicating success or failure.
+	 * Retrieves Instagram user interactions for a specific professional user.
+	 * @param professionalUserId - The ID of the professional user.
+	 * @param limit - The maximum number of interactions to retrieve (default: 10).
+	 * @returns A Promise that resolves to an array of InstagramUserInteraction objects.
 	 */
-	async saveInstagramUserProfile(profile: InstagramUserProfile): Promise<boolean> {
-		const query = `
-			INSERT INTO instagramUserProfile (
-				instagram_scoped_id, follower_count, is_business_follow_user,
-				is_user_follow_business, is_verified_user, name, username
-			) VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT (instagram_scoped_id) DO UPDATE SET
-				follower_count = excluded.follower_count,
-				is_business_follow_user = excluded.is_business_follow_user,
-				is_user_follow_business = excluded.is_user_follow_business,
-				is_verified_user = excluded.is_verified_user,
-				name = excluded.name,
-				username = excluded.username,
-				updated_at = CURRENT_TIMESTAMP
-		`;
-
-		try {
-			console.log('Saving Instagram user profile:', JSON.stringify(profile, null, 2));
-			const result = await this.db
-				.prepare(query)
-				.bind(
-					profile.instagram_scoped_id,
-					profile.follower_count,
-					profile.is_business_follow_user,
-					profile.is_user_follow_business,
-					profile.is_verified_user || false, // Assuming false if not provided
-					profile.name || null,
-					profile.username
-				)
-				.run();
-			console.log('Database operation result:', JSON.stringify(result, null, 2));
-			return result.success;
-		} catch (error) {
-			console.error('Error saving Instagram user profile:', error);
-			console.error('Profile data:', JSON.stringify(profile, null, 2));
-			return false;
-		}
-	}
-
-	/**
-	 * Inserts a new Instagram user interaction into the database.
-	 * @param interaction - The Instagram user interaction object to insert.
-	 * @returns A Promise that resolves to a boolean indicating success or failure.
-	 */
-	async insertInstagramUserInteraction(
-		interaction: CreateInstagramUserInteraction
-	): Promise<boolean> {
-		const query = `
-      INSERT INTO instagramUserInteraction (
-        instagram_scoped_id, professional_user_id, timestamp, additional_data
-      ) VALUES (?, ?, ?, json(?))
-    `;
-
-		try {
-			console.log('Inserting Instagram user interaction:', JSON.stringify(interaction, null, 2));
-			const result = await this.db
-				.prepare(query)
-				.bind(
-					interaction.instagram_scoped_id,
-					interaction.professional_user_id,
-					interaction.timestamp,
-					JSON.stringify(interaction.additional_data) // Using D1's json() function
-				)
-				.run();
-			console.log('Database operation result:', JSON.stringify(result, null, 2));
-			return result.success;
-		} catch (error) {
-			console.error('Error inserting Instagram user interaction:', error);
-			console.error('Interaction data:', JSON.stringify(interaction, null, 2));
-			return false;
-		}
-	}
-
 	async getInstagramUserInteractions(
 		professionalUserId: string,
 		limit: number = 10
 	): Promise<InstagramUserInteraction[]> {
 		const query = `
-      SELECT
-        id,
-        instagram_scoped_id,
-        professional_user_id,
-        timestamp
-      FROM instagramUserInteraction
-      WHERE professional_user_id = ?
-      ORDER BY timestamp DESC
-      LIMIT ?
-    `;
+						SELECT
+								id,
+								instagram_scoped_id,
+								professional_user_id,
+								timestamp
+						FROM instagramUserInteraction
+						WHERE professional_user_id = ?
+						ORDER BY timestamp DESC
+						LIMIT ?
+				`;
 
 		try {
 			const result = await this.db.prepare(query).bind(professionalUserId, limit).all();
@@ -216,6 +144,12 @@ class Database implements DatabaseClient {
 		}
 	}
 
+	/**
+	 * Saves an Instagram user profile and interaction in a single transaction.
+	 * @param profile - The InstagramUserProfile object to save or update.
+	 * @param interaction - The CreateInstagramUserInteraction object to save.
+	 * @returns A Promise that resolves to an object indicating the success status of the operation and whether a new profile was created.
+	 */
 	async saveProfileAndInteraction(
 		profile: InstagramUserProfile,
 		interaction: CreateInstagramUserInteraction
@@ -225,25 +159,25 @@ class Database implements DatabaseClient {
 		isNewProfile: boolean;
 	}> {
 		const profileQuery = `
-    INSERT INTO instagramUserProfile (
-      instagram_scoped_id, follower_count, is_business_follow_user,
-      is_user_follow_business, name, username
-    ) VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT (instagram_scoped_id) DO UPDATE SET
-      follower_count = excluded.follower_count,
-      is_business_follow_user = excluded.is_business_follow_user,
-      is_user_follow_business = excluded.is_user_follow_business,
-      name = excluded.name,
-      username = excluded.username,
-      updated_at = CURRENT_TIMESTAMP
-    RETURNING (changes() = 0) AS is_updated;
-  `;
+				INSERT INTO instagramUserProfile (
+						instagram_scoped_id, follower_count, is_business_follow_user,
+						is_user_follow_business, name, username
+				) VALUES (?, ?, ?, ?, ?, ?)
+				ON CONFLICT (instagram_scoped_id) DO UPDATE SET
+						follower_count = excluded.follower_count,
+						is_business_follow_user = excluded.is_business_follow_user,
+						is_user_follow_business = excluded.is_user_follow_business,
+						name = excluded.name,
+						username = excluded.username,
+						updated_at = CURRENT_TIMESTAMP
+				RETURNING (changes() = 0) AS is_updated;
+		`;
 
 		const interactionQuery = `
-    INSERT INTO instagramUserInteraction (
-      instagram_scoped_id, professional_user_id, timestamp, additional_data
-    ) VALUES (?, ?, ?, json(?));
-  `;
+				INSERT INTO instagramUserInteraction (
+						instagram_scoped_id, professional_user_id, timestamp, additional_data
+				) VALUES (?, ?, ?, json(?));
+		`;
 
 		try {
 			const results = await this.db.batch([
@@ -267,7 +201,6 @@ class Database implements DatabaseClient {
 					),
 			]);
 
-			// Explicitly type and check the results
 			const profileResult = results[0] as D1Result<{ is_updated: number }> | undefined;
 			const interactionResult = results[1] as D1Result<{}> | undefined;
 

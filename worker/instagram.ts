@@ -101,8 +101,6 @@ class InstagramAPI {
 			};
 
 			const result = await app.databaseClient.saveProfileAndInteraction(profile, interaction);
-			// const profileSaved = await app.databaseClient.saveInstagramUserProfile(profile);
-			// const interactionSaved = await app.databaseClient.insertInstagramUserInteraction(interaction);
 
 			console.log('Profile and interaction save result:', result);
 

@@ -1,13 +1,107 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* CSS Reset */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
-code, pre {
-  font-family: 'JetBrains Mono', monospace;
-  background: rgba(0, 0, 0, .15);
-  border-radius: 3px;
-  padding: 0 0.2em;
+html {
+	font-size: 16px;
+	scroll-behavior: smooth;
+}
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	line-height: 1.5;
+
+	/* Hide scrollbars but allow scrolling */
+	overflow: auto;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+
+	/* Prevent overscroll/bounce */
+	overscroll-behavior: none;
+
+	/* Optimize for mobile */
+	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+/* Hide WebKit scrollbar */
+body::-webkit-scrollbar {
+	display: none;
+}
+
+/* Prevent text selection and callouts */
+* {
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+
+/* Allow text selection within inputs and textareas */
+input,
+textarea {
+	-webkit-user-select: auto;
+	user-select: auto;
+}
+
+/* Set viewport height to adjust for mobile browser UI */
+html,
+body {
+	height: 100%;
+}
+
+@supports (-webkit-touch-callout: none) {
+	html,
+	body {
+		height: -webkit-fill-available;
+	}
+}
+
+/* Ensure content is at least full height of the viewport */
+#root {
+	min-height: 100vh;
+	/* Fallback for browsers that do not support Custom Properties */
+	min-height: -webkit-fill-available;
+	min-height: fill-available;
+}
+
+/* Optimize for iOS safe areas */
+@supports (padding: max(0px)) {
+	body {
+		padding-left: max(0px, env(safe-area-inset-left));
+		padding-right: max(0px, env(safe-area-inset-right));
+		padding-top: max(0px, env(safe-area-inset-top));
+		padding-bottom: max(0px, env(safe-area-inset-bottom));
+	}
+}
+
+/* Improve form element appearance */
+input,
+textarea,
+select,
+button {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+	background-color: transparent;
+	border: none;
+}
+
+/* Original styles for code and pre */
+code,
+pre {
+	font-family: 'JetBrains Mono', monospace;
+	background: rgba(0, 0, 0, 0.15);
+	border-radius: 3px;
+	padding: 0 0.2em;
 }

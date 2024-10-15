@@ -78,7 +78,7 @@ const createRouter = (env: Env) => {
 			databaseClient: new Database(env.DB),
 		};
 
-		// Lazy Instagram user check
+		// should be moved to separate handle
 		ctx.waitUntil(getInstagramUser(env, app));
 
 		ctx.waitUntil(app.instagram.processInstagramUserProfile(body, app));
