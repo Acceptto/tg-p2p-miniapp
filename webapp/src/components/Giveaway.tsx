@@ -55,7 +55,7 @@ export default function InstagramGiveawayUI() {
 						</Avatar>
 						<div>
 							<CardTitle className="text-lg">Epic Giveaway!</CardTitle>
-							<CardDescription>@giveaway_account</CardDescription>
+							<CardDescription>@okzeeyou</CardDescription>
 						</div>
 					</div>
 					<Button variant={isFollowing ? 'secondary' : 'default'} size="sm" onClick={handleFollow}>
@@ -77,7 +77,7 @@ export default function InstagramGiveawayUI() {
 					</Button>
 					{!isFollowing && (
 						<p className="text-sm text-center text-muted-foreground">
-							You must follow @giveaway_account to enter the giveaway
+							You must follow @okzeeyou to enter the giveaway
 						</p>
 					)}
 				</div>
@@ -89,19 +89,19 @@ export default function InstagramGiveawayUI() {
 							<Badge variant="secondary" className="mr-2">
 								1st
 							</Badge>
-							Latest Smartphone
+							3 free nights in our hotel
 						</li>
 						<li>
 							<Badge variant="secondary" className="mr-2">
 								2nd
 							</Badge>
-							Wireless Earbuds
+							Free room upgrade
 						</li>
 						<li>
 							<Badge variant="secondary" className="mr-2">
 								3rd
 							</Badge>
-							Smart Watch
+							Free half-board meal plan during your stay
 						</li>
 					</ul>
 				</div>
