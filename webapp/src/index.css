@@ -2,77 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-	:root {
-		/* Your custom properties remain unchanged */
-	}
-	.dark {
-		/* Your dark mode properties remain unchanged */
-	}
-
-	html {
-		@apply h-full w-full overflow-x-hidden scroll-smooth;
-	}
-
-	body {
-		@apply h-full text-base leading-normal bg-background text-foreground;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-		overflow-y: scroll;
-		-webkit-overflow-scrolling: touch;
-		overscroll-behavior-y: none;
-		-webkit-user-select: none;
-		user-select: none;
-		-webkit-tap-highlight-color: transparent;
-		touch-action: manipulation;
-	}
-
-	/* Hide scrollbars while allowing scrolling */
-	body {
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-	}
-
-	body::-webkit-scrollbar {
-		display: none;
-	}
-
-	input,
-	textarea {
-		@apply select-text;
-	}
-
-	button {
-		@apply bg-transparent border-none p-[10px_15px] cursor-pointer;
-	}
-
-	#root {
-		@apply min-h-full flex flex-col;
-	}
-
-	code,
-	pre {
-		@apply font-mono bg-black/5 rounded p-[0_0.2em];
-	}
+body {
+	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-@layer components {
-	/* You can define reusable component styles here if needed */
-}
-
-@layer utilities {
-	/* Custom utilities can be defined here */
-}
-
-/* Optimize scrolling for touch devices */
-@media (pointer: coarse) {
-	body {
-		@apply fixed w-full h-full overflow-hidden;
-	}
-
-	#root {
-		@apply absolute inset-0 overflow-y-auto;
-		-webkit-overflow-scrolling: touch;
-	}
+code,
+pre {
+	font-family: 'JetBrains Mono', monospace;
+	background: rgba(0, 0, 0, 0.15);
+	border-radius: 3px;
+	padding: 0 0.2em;
 }
