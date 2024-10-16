@@ -1,5 +1,4 @@
 import type { Config } from 'tailwindcss';
-import '@types/node';
 
 export default {
 	darkMode: ['class'],
