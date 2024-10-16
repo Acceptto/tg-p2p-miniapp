@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Gift, UserPlus, Share2, Clock, Plane, Hotel } from 'lucide-react';
+import { Share2, Clock, Plane, Hotel } from 'lucide-react';
 
 const participants = [
 	{ name: 'Olivia' },
