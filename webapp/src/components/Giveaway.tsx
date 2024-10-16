@@ -46,32 +46,34 @@ export default function Giveaway() {
 	};
 
 	return (
-		<Card className="w-full max-w-md mx-auto bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 border-2 border-purple-200 dark:border-purple-800">
+		<Card className="w-full bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 border-2 border-purple-200 dark:border-purple-800">
 			<CardHeader className="space-y-1">
 				<div className="flex items-center justify-between mb-2">
-					<div className="flex items-center space-x-4">
-						<Avatar className="w-16 h-16 border-2 border-purple-500">
-							<AvatarImage src="/placeholder.svg" alt="@exclusive_giveaways" />
+					<div className="flex items-center space-x-2 sm:space-x-4">
+						<Avatar className="w-12 h-12 sm:w-16 sm:h-16 border-2 border-purple-500">
+							<AvatarImage src="/placeholder.svg" alt="@okzeeyou" />
 							<AvatarFallback>EG</AvatarFallback>
 						</Avatar>
 						<div>
-							<CardTitle className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+							<CardTitle className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
 								Exclusive Giveaway!
 							</CardTitle>
-							<CardDescription className="font-medium">@exclusive_giveaways</CardDescription>
+							<CardDescription className="text-sm sm:text-base font-medium">
+								@okzeeyou
+							</CardDescription>
 						</div>
 					</div>
 				</div>
-				<CardDescription className="text-center text-lg font-semibold text-purple-600 dark:text-purple-400">
-					You've been specially selected for this exclusive opportunity!
+				<CardDescription className="text-center text-sm sm:text-lg font-semibold text-purple-600 dark:text-purple-400">
+					You've been specially selected!
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-4">
+			<CardContent className="space-y-3 sm:space-y-4">
 				<div className="space-y-2">
-					<h3 className="font-bold text-lg flex items-center">
-						<Trophy className="w-5 h-5 mr-2 text-yellow-500" /> Grand Prizes:
+					<h3 className="font-bold text-base sm:text-lg flex items-center">
+						<Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-yellow-500" /> Grand Prizes:
 					</h3>
-					<ul className="space-y-2">
+					<ul className="space-y-1 sm:space-y-2 text-sm sm:text-base">
 						<li className="flex items-center">
 							<Badge
 								variant="secondary"
@@ -79,7 +81,7 @@ export default function Giveaway() {
 							>
 								1st
 							</Badge>
-							<span className="font-medium">Latest Pro Smartphone</span>
+							<span className="font-medium">Room Upgrade</span>
 						</li>
 						<li className="flex items-center">
 							<Badge
@@ -88,7 +90,7 @@ export default function Giveaway() {
 							>
 								2nd
 							</Badge>
-							<span className="font-medium">Noise-Cancelling Earbuds</span>
+							<span className="font-medium">Spa Package</span>
 						</li>
 						<li className="flex items-center">
 							<Badge
@@ -97,17 +99,17 @@ export default function Giveaway() {
 							>
 								3rd
 							</Badge>
-							<span className="font-medium">Luxury Smartwatch</span>
+							<span className="font-medium">Free Dinner</span>
 						</li>
 					</ul>
 				</div>
-				<Separator className="my-4" />
+				<Separator className="my-2 sm:my-4" />
 				<div className="space-y-2">
-					<h4 className="font-semibold flex items-center">
+					<h4 className="font-semibold text-sm sm:text-base flex items-center">
 						<Users className="w-4 h-4 mr-2" /> Exclusive Group:
 					</h4>
 					<Progress value={progress} className="w-full" />
-					<p className="text-sm text-center text-muted-foreground">
+					<p className="text-xs sm:text-sm text-center text-muted-foreground">
 						{progress}% of selected users have joined
 					</p>
 				</div>
@@ -115,36 +117,36 @@ export default function Giveaway() {
 					<Button
 						onClick={handleFollow}
 						variant={isFollowing ? 'secondary' : 'default'}
-						className="w-full"
+						className="w-full text-sm sm:text-base"
 					>
 						{isFollowing ? 'Following' : 'Follow to Join'}
 						<UserPlus className="w-4 h-4 ml-2" />
 					</Button>
 					<Button
 						onClick={handleEnterGiveaway}
-						className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+						className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm sm:text-base"
 						disabled={isEntered || !isFollowing}
 					>
-						{isEntered ? "You're In!" : 'Enter Exclusive Giveaway'}
+						{isEntered ? "You're In!" : 'Enter Giveaway'}
 						<Gift className="w-4 h-4 ml-2" />
 					</Button>
 				</div>
 				{!isFollowing && (
-					<p className="text-sm text-center text-muted-foreground">
-						Follow @exclusive_giveaways to unlock your entry
+					<p className="text-xs sm:text-sm text-center text-muted-foreground">
+						Follow @okzeeyou to unlock your entry
 					</p>
 				)}
-				<Button variant="outline" className="w-full">
+				<Button variant="outline" className="w-full text-sm sm:text-base">
 					Share with Friends
 					<Share2 className="w-4 h-4 ml-2" />
 				</Button>
 			</CardContent>
 			<CardFooter>
 				<div className="w-full text-center space-y-1">
-					<p className="text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center justify-center">
-						<Clock className="w-4 h-4 mr-2" /> Exclusive Offer Ends In:
+					<p className="text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center justify-center">
+						<Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Offer Ends In:
 					</p>
-					<p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+					<p className="text-lg sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
 						{formatTime(timeLeft)}
 					</p>
 				</div>
