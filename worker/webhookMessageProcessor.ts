@@ -242,14 +242,11 @@ async function handleStoryMention(
 	console.log(`Story mention URL: ${payload.url}`);
 
 	const thankYouMessage =
-		"Thank you for mentioning us in your story! We're thrilled to let you know that you've been selected for our exclusive giveaway. 🎉 Don't miss this amazing opportunity! Would you like to join the giveaway now?";
+		"Thank you for mentioning us in your story!❤️ We're thrilled to let you know that you've been selected for our exclusive giveaway. 🎉 Don't miss this amazing opportunity! Would you like to join the giveaway now?";
 
 	try {
 		// Send a text message
 		await instagram.sendTextMessage(igId, igsId, thankYouMessage);
-
-		// Send a heart sticker
-		await instagram.sendStickerMessage(igId, igsId);
 
 		const titles = ['GIVEAWAY!'];
 		const imageUrls = [
