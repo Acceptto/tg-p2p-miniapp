@@ -1,18 +1,23 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import {
-	Card,
-	CardHeader,
-	CardTitle,
-	CardDescription,
-	CardContent,
-	CardFooter,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Gift, UserPlus, Share2, Trophy, Clock, Users } from 'lucide-react';
+import { Gift, UserPlus, Share2, Clock, Plane, Hotel } from 'lucide-react';
+
+const participants = [
+	{ name: 'Olivia' },
+	{ name: 'Emma' },
+	{ name: 'Ava' },
+	{ name: 'Sophia' },
+	{ name: 'Isabella' },
+	{ name: 'Mia' },
+	{ name: 'Charlotte' },
+	// Add more participants as needed
+];
 
 export default function Giveaway() {
 	const [timeLeft, setTimeLeft] = useState(259200); // 3 days in seconds
@@ -46,111 +51,120 @@ export default function Giveaway() {
 	};
 
 	return (
-		<Card className="w-full bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 border-2 border-purple-200 dark:border-purple-800">
-			<CardHeader className="space-y-1">
-				<div className="flex items-center justify-between mb-2">
-					<div className="flex items-center space-x-2 sm:space-x-4">
-						<Avatar className="w-12 h-12 sm:w-16 sm:h-16 border-2 border-purple-500">
-							<AvatarImage src="/placeholder.svg" alt="@okzeeyou" />
-							<AvatarFallback>EG</AvatarFallback>
-						</Avatar>
-						<div>
-							<CardTitle className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
-								Exclusive Giveaway!
-							</CardTitle>
-							<CardDescription className="text-sm sm:text-base font-medium">
-								@okzeeyou
-							</CardDescription>
+		<Card className="w-full max-w-md mx-auto bg-stone-50 dark:bg-stone-900 shadow-md border-0">
+			<CardHeader className="space-y-1 text-center pb-4">
+				<div className="flex items-center justify-center mb-4">
+					<Avatar className="w-20 h-20 border-2 border-stone-200 dark:border-stone-700">
+						<AvatarImage
+							src="https://plus.unsplash.com/premium_photo-1682800179180-fb326934d458?q=80&w=3271&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+							alt="@minimalist_travels"
+						/>
+						<AvatarFallback>MT</AvatarFallback>
+					</Avatar>
+				</div>
+				<CardTitle className="text-2xl font-light text-stone-800 dark:text-stone-200">
+					Our Hotel Giveaway ✈️
+				</CardTitle>
+				<CardDescription className="text-sm font-medium text-stone-600 dark:text-stone-400">
+					@okzeeyou
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div className="bg-white dark:bg-stone-800 p-4 rounded-lg shadow-sm text-center">
+					<p className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+						Giveaway Ends In:
+					</p>
+					<p className="text-2xl font-light text-stone-800 dark:text-stone-200">
+						{formatTime(timeLeft)}
+					</p>
+				</div>
+				<div className="text-center">
+					<p className="text-lg font-light text-stone-600 dark:text-stone-400">
+						Win a serene escape to our minimalist resort 🏝️
+					</p>
+				</div>
+				<div className="space-y-4">
+					<h3 className="font-light text-xl text-center text-stone-800 dark:text-stone-200">
+						Prizes
+					</h3>
+					<div className="grid grid-cols-1 gap-3">
+						<div className="p-3 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center">
+							<Hotel className="w-5 h-5 mr-3 text-stone-600 dark:text-stone-400" />
+							<p className="font-medium text-stone-800 dark:text-stone-200">
+								3-Night Zen Retreat 🧘‍♀️
+							</p>
+						</div>
+						<div className="p-3 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center">
+							<Plane className="w-5 h-5 mr-3 text-stone-600 dark:text-stone-400" />
+							<p className="font-medium text-stone-800 dark:text-stone-200">
+								Eco-Friendly Travel Kit 🌿
+							</p>
+						</div>
+						<div className="p-3 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center">
+							<Clock className="w-5 h-5 mr-3 text-stone-600 dark:text-stone-400" />
+							<p className="font-medium text-stone-800 dark:text-stone-200">
+								Mindful Experience Package 🕯️
+							</p>
 						</div>
 					</div>
 				</div>
-				<CardDescription className="text-center text-sm sm:text-lg font-semibold text-purple-600 dark:text-purple-400">
-					You've been specially selected!
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-3 sm:space-y-4">
-				<div className="space-y-2">
-					<h3 className="font-bold text-base sm:text-lg flex items-center">
-						<Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-yellow-500" /> Grand Prizes:
-					</h3>
-					<ul className="space-y-1 sm:space-y-2 text-sm sm:text-base">
-						<li className="flex items-center">
-							<Badge
-								variant="secondary"
-								className="mr-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white"
-							>
-								1st
-							</Badge>
-							<span className="font-medium">Room Upgrade</span>
-						</li>
-						<li className="flex items-center">
-							<Badge
-								variant="secondary"
-								className="mr-2 bg-gradient-to-r from-gray-400 to-gray-600 text-white"
-							>
-								2nd
-							</Badge>
-							<span className="font-medium">Spa Package</span>
-						</li>
-						<li className="flex items-center">
-							<Badge
-								variant="secondary"
-								className="mr-2 bg-gradient-to-r from-orange-400 to-orange-600 text-white"
-							>
-								3rd
-							</Badge>
-							<span className="font-medium">Free Dinner</span>
-						</li>
-					</ul>
-				</div>
-				<Separator className="my-2 sm:my-4" />
-				<div className="space-y-2">
-					<h4 className="font-semibold text-sm sm:text-base flex items-center">
-						<Users className="w-4 h-4 mr-2" /> Exclusive Group:
+				<Separator className="my-4" />
+				<div className="space-y-3">
+					<h4 className="font-light text-lg text-center text-stone-800 dark:text-stone-200">
+						Fellow Travelers 👥
 					</h4>
-					<Progress value={progress} className="w-full" />
-					<p className="text-xs sm:text-sm text-center text-muted-foreground">
-						{progress}% of selected users have joined
+					<div className="flex justify-center -space-x-2">
+						{participants.slice(0, 5).map((participant, index) => (
+							<Avatar
+								key={index}
+								className="w-8 h-8 border-2 border-stone-50 dark:border-stone-900"
+							>
+								<AvatarImage
+									src={`https://i.pravatar.cc/150?img=${index + 1}`}
+									alt={participant.name}
+								/>
+								<AvatarFallback>{participant.name[0]}</AvatarFallback>
+							</Avatar>
+						))}
+						{participants.length > 5 && (
+							<div className="w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center text-stone-600 dark:text-stone-300 text-xs font-medium border-2 border-stone-50 dark:border-stone-900">
+								+{participants.length - 5}
+							</div>
+						)}
+					</div>
+					<Progress value={progress} className="w-full h-1" />
+					<p className="text-sm text-center text-stone-600 dark:text-stone-400">
+						{progress}% of invitees have joined the journey
 					</p>
 				</div>
-				<div className="space-y-2">
+				<div className="space-y-3">
 					<Button
 						onClick={handleFollow}
 						variant={isFollowing ? 'secondary' : 'default'}
-						className="w-full text-sm sm:text-base"
+						className="w-full bg-stone-800 text-stone-100 hover:bg-stone-700 dark:bg-stone-200 dark:text-stone-800 dark:hover:bg-stone-300"
 					>
-						{isFollowing ? 'Following' : 'Follow to Join'}
+						{isFollowing ? 'Following ✅' : 'Follow to Join 🤝'}
 						<UserPlus className="w-4 h-4 ml-2" />
 					</Button>
 					<Button
 						onClick={handleEnterGiveaway}
-						className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm sm:text-base"
+						className="w-full bg-stone-200 text-stone-800 hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
 						disabled={isEntered || !isFollowing}
 					>
-						{isEntered ? "You're In!" : 'Enter Giveaway'}
+						{isEntered ? 'Entered 🎉' : 'Enter Giveaway 🎁'}
 						<Gift className="w-4 h-4 ml-2" />
 					</Button>
 				</div>
 				{!isFollowing && (
-					<p className="text-xs sm:text-sm text-center text-muted-foreground">
-						Follow @okzeeyou to unlock your entry
+					<p className="text-sm text-center text-stone-500 dark:text-stone-400">
+						Follow @okzeeyou to participate 👀
 					</p>
 				)}
-				<Button variant="outline" className="w-full text-sm sm:text-base">
-					Share with Friends
+				<Button variant="outline" className="w-full">
+					Share with Travel Buddies 📢
 					<Share2 className="w-4 h-4 ml-2" />
 				</Button>
 			</CardContent>
-			<CardFooter>
-				<div className="w-full text-center space-y-1">
-					<p className="text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center justify-center">
-						<Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Offer Ends In:
-					</p>
-					<p className="text-lg sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
-						{formatTime(timeLeft)}
-					</p>
-				</div>
-			</CardFooter>
 		</Card>
 	);
 }

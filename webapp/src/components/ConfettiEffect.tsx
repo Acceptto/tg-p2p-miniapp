@@ -3,47 +3,30 @@ import confetti from 'canvas-confetti';
 
 export const ConfettiEffect: React.FC = () => {
 	useEffect(() => {
-		const scalar = 2;
-		const unicorn = confetti.shapeFromText({ text: '🦄', scalar });
+		var end = Date.now() + 5 * 1000;
 
-		const defaults: confetti.Options = {
-			spread: 360,
-			ticks: 60,
-			gravity: 0,
-			decay: 0.96,
-			startVelocity: 20,
-			shapes: [unicorn],
-			scalar,
-		};
+		var colors = ['#bb0000', '#ffffff'];
 
-		function shoot() {
+		(function frame() {
 			confetti({
-				...defaults,
-				particleCount: 30,
+				particleCount: 2,
+				angle: 60,
+				spread: 70,
+				origin: { x: 0 },
+				colors: colors,
+			});
+			confetti({
+				particleCount: 2,
+				angle: 120,
+				spread: 70,
+				origin: { x: 1 },
+				colors: colors,
 			});
 
-			confetti({
-				...defaults,
-				particleCount: 5,
-			});
-
-			confetti({
-				...defaults,
-				particleCount: 15,
-				scalar: scalar / 2,
-				shapes: ['circle'],
-			});
-		}
-
-		// Launch three bursts of confetti
-		setTimeout(shoot, 0);
-		setTimeout(shoot, 100);
-		setTimeout(shoot, 200);
-
-		// Clean up function (optional, as the confetti will finish on its own)
-		return () => {
-			confetti.reset();
-		};
+			if (Date.now() < end) {
+				requestAnimationFrame(frame);
+			}
+		})();
 	}, []);
 
 	return null;
