@@ -114,9 +114,6 @@ export default function Giveaway() {
 			if (navigator.canShare && navigator.canShare({ files: [file] })) {
 				await navigator.share({
 					files: [file],
-					title: 'Join our Giveaway!',
-					text: 'Win a serene escape to our minimalist resort 🏝️',
-					url: window.location.href,
 				});
 			} else {
 				throw new Error('File sharing not supported on this device');
