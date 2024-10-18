@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -16,10 +16,6 @@ const participants = [
 	{ name: 'Charlotte' },
 	// Add more participants as needed
 ];
-
-// PNG data URL (base64 encoded image)
-const PNG_DATA_URL =
-	'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAIAAAABHJwNAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEyGibVAAAAdklEQVRIDaXBAQEAAABDoI1YgD3BAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQAAX8IsAADwwlK0AAAAAElFTkSuQmCC';
 
 export default function Giveaway() {
 	const [timeLeft, setTimeLeft] = useState(259200); // 3 days in seconds
@@ -52,46 +48,47 @@ export default function Giveaway() {
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
 
-	const [shareFile, setShareFile] = useState<File | null>(null);
-
-	useEffect(() => {
-		const createShareFile = async () => {
-			const response = await fetch(PNG_DATA_URL);
-			const blob = await response.blob();
-			const file = new File([blob], 'giveaway-image.png', { type: 'image/png' });
-			setShareFile(file);
-		};
-
-		createShareFile();
-	}, []);
-
-	const handleShare = useCallback(async () => {
-		if (!shareFile) {
-			console.log('Share image is not ready. Please try again.');
+	const handleShare = async () => {
+		if (!navigator.share) {
+			alert(
+				'Your browser does not support sharing. Please try on a mobile device or a different browser.'
+			);
 			return;
 		}
 
-		const shareData = { files: [shareFile] };
+		const imageUrl = '/giveaway-image.jpg'; // This path is relative to the public folder
 
-		if (navigator.canShare && navigator.canShare(shareData)) {
-			try {
-				await navigator.share(shareData);
-				console.log('Thanks for spreading the word!');
-			} catch (error) {
-				console.error('Error sharing:', error);
+		try {
+			// Fetch the image from the public folder
+			const response = await fetch(imageUrl);
+			if (!response.ok) {
+				throw new Error(`Failed to fetch image: ${response.statusText}`);
 			}
-		} else {
-			// Fallback: Prompt user to save and share manually
-			const blobUrl = URL.createObjectURL(shareFile);
-			const link = document.createElement('a');
-			link.href = blobUrl;
-			link.download = 'giveaway-image.png';
-			link.click();
-			URL.revokeObjectURL(blobUrl);
+			const blob = await response.blob();
+			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
-			console.log('Please share the downloaded image manually.');
+			if (navigator.canShare && navigator.canShare({ files: [file] })) {
+				await navigator.share({ files: [file] });
+			} else {
+				throw new Error('File sharing not supported on this device');
+			}
+		} catch (error) {
+			console.error('Error sharing:', error);
+			if (error instanceof Error) {
+				if (error.name === 'AbortError') {
+					console.log('Share cancelled by the user');
+				} else if (error.message === 'File sharing not supported on this device') {
+					alert(
+						'Your device does not support sharing image files. Please try on a different device.'
+					);
+				} else {
+					alert(`Unable to share the image: ${error.message}`);
+				}
+			} else {
+				alert('An unexpected error occurred. Please try again later.');
+			}
 		}
-	}, [shareFile]);
+	};
 
 	return (
 		<Card className="w-full bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700 mx-auto max-w-sm sm:max-w-md">
