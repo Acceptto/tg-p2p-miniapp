@@ -48,33 +48,50 @@ export default function Giveaway() {
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
 
-	const shareToInstagramStories = (imageUrl: string) => {
-		const encodedUrl = encodeURIComponent(imageUrl);
-		const instagramUrl = `instagram://story?source_url=${encodedUrl}`;
+	const getBase64Image = async (imageUrl: string): Promise<string> => {
+		const response = await fetch(imageUrl);
+		const blob = await response.blob();
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onloadend = () => resolve(reader.result as string);
+			reader.onerror = reject;
+			reader.readAsDataURL(blob);
+		});
+	};
 
-		window.location.href = instagramUrl;
+	const shareToInstagramStories = async (imageUrl: string) => {
+		try {
+			const base64Image = await getBase64Image(imageUrl);
+			const encodedImage = encodeURIComponent(base64Image);
+			const instagramUrl = `instagram://story?source_application=your_app_id&background_image=${encodedImage}`;
 
-		// Fallback for desktop or if the Instagram app isn't installed
-		setTimeout(() => {
-			if (document.hidden) {
-				// The app was likely opened, do nothing
-			} else {
-				// The app probably isn't installed, provide a fallback
-				alert(
-					"Couldn't open Instagram. Please make sure the Instagram app is installed or try sharing manually."
-				);
-			}
-		}, 2000);
+			window.location.href = instagramUrl;
+
+			// Fallback for desktop or if the Instagram app isn't installed
+			setTimeout(() => {
+				if (document.hidden) {
+					// The app was likely opened, do nothing
+				} else {
+					// The app probably isn't installed, provide a fallback
+					alert(
+						"Couldn't open Instagram. Please make sure the Instagram app is installed or try sharing manually."
+					);
+				}
+			}, 2000);
+		} catch (error) {
+			console.error('Error preparing image for Instagram:', error);
+			alert('Failed to prepare the image for sharing to Instagram. Please try again.');
+		}
 	};
 
 	const handleShare = async () => {
-		const imageUrl = `${window.location.origin}/giveaway-image.jpg`; // Full URL to the image
+		const imageUrl = `${window.location.origin}/giveaway-image.jpg`; // Ensure this is a JPEG or PNG
 
 		// Check if it's Instagram (this check isn't 100% reliable)
 		const isInstagram = /Instagram/.test(navigator.userAgent);
 
 		if (isInstagram) {
-			shareToInstagramStories(imageUrl);
+			await shareToInstagramStories(imageUrl);
 			return;
 		}
 
