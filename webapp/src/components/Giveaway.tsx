@@ -48,7 +48,36 @@ export default function Giveaway() {
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
 
+	const shareToInstagramStories = (imageUrl: string) => {
+		const encodedUrl = encodeURIComponent(imageUrl);
+		const instagramUrl = `instagram://story?source_url=${encodedUrl}`;
+
+		window.location.href = instagramUrl;
+
+		// Fallback for desktop or if the Instagram app isn't installed
+		setTimeout(() => {
+			if (document.hidden) {
+				// The app was likely opened, do nothing
+			} else {
+				// The app probably isn't installed, provide a fallback
+				alert(
+					"Couldn't open Instagram. Please make sure the Instagram app is installed or try sharing manually."
+				);
+			}
+		}, 2000);
+	};
+
 	const handleShare = async () => {
+		const imageUrl = `${window.location.origin}/giveaway-image.jpg`; // Full URL to the image
+
+		// Check if it's Instagram (this check isn't 100% reliable)
+		const isInstagram = /Instagram/.test(navigator.userAgent);
+
+		if (isInstagram) {
+			shareToInstagramStories(imageUrl);
+			return;
+		}
+
 		if (!navigator.share) {
 			alert(
 				'Your browser does not support sharing. Please try on a mobile device or a different browser.'
@@ -56,10 +85,8 @@ export default function Giveaway() {
 			return;
 		}
 
-		const imageUrl = '/giveaway-image.jpg'; // This path is relative to the public folder
-
 		try {
-			// Fetch the image from the public folder
+			// Fetch the image
 			const response = await fetch(imageUrl);
 			if (!response.ok) {
 				throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -67,22 +94,13 @@ export default function Giveaway() {
 			const blob = await response.blob();
 			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
-			// Check if the user agent suggests it's Instagram
-			const isInstagram = /Instagram/.test(navigator.userAgent);
-
 			if (navigator.canShare && navigator.canShare({ files: [file] })) {
-				if (isInstagram) {
-					// For Instagram, we can only share the image without any text
-					await navigator.share({ files: [file] });
-				} else {
-					// For other platforms, we can include both file and text
-					await navigator.share({
-						files: [file],
-						title: 'Join our Giveaway!',
-						text: 'Win a serene escape to our minimalist resort 🏝️',
-						url: window.location.href,
-					});
-				}
+				await navigator.share({
+					files: [file],
+					title: 'Join our Giveaway!',
+					text: 'Win a serene escape to our minimalist resort 🏝️',
+					url: window.location.href,
+				});
 			} else {
 				throw new Error('File sharing not supported on this device');
 			}
@@ -91,16 +109,10 @@ export default function Giveaway() {
 			if (error instanceof Error) {
 				if (error.name === 'AbortError') {
 					console.log('Share cancelled by the user');
-				} else if (error.message === 'File sharing not supported on this device') {
-					alert(
-						'Your device does not support sharing image files. Please try on a different device.'
-					);
-				} else if (/Instagram/.test(navigator.userAgent)) {
-					alert(
-						'Sharing to Instagram Stories may not work. Try saving the image and uploading it manually to your story.'
-					);
 				} else {
-					alert(`Unable to share the image: ${error.message}`);
+					alert(
+						`Unable to share the image: ${error.message}. Try saving the image and sharing manually.`
+					);
 				}
 			} else {
 				alert('An unexpected error occurred. Please try again later.');
