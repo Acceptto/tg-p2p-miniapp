@@ -63,73 +63,96 @@ export default function Giveaway() {
 			}
 		};
 
-		try {
+		const shareContent = async (withImage: boolean) => {
 			if (!navigator.share) {
 				throw new Error('Web Share API not supported');
 			}
 
-			// Fetch the image
-			let file;
-			try {
-				const response = await fetch(imageUrl);
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
+			if (withImage) {
+				try {
+					const response = await fetch(imageUrl, { mode: 'cors' });
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+					}
+					const blob = await response.blob();
+					const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+
+					if (navigator.canShare && navigator.canShare({ files: [file] })) {
+						await navigator.share({ files: [file] });
+						return;
+					}
+				} catch (fetchError) {
+					logError(fetchError, 'Image fetch');
+					console.warn('Failed to fetch image, falling back to text sharing');
 				}
-				const blob = await response.blob();
-				file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
-			} catch (fetchError) {
-				logError(fetchError, 'Image fetch');
-				throw new Error('Failed to fetch the image');
 			}
 
-			// Check if file sharing is supported
-			if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
-				throw new Error('File sharing not supported');
-			}
+			// If image sharing failed or wasn't attempted, fall back to text sharing
+			await navigator.share({ text: `${shareText}\n${shareUrl}` });
+		};
 
-			// Attempt to share the file
-			await navigator.share({ files: [file] });
+		try {
+			await shareContent(true);
 		} catch (error) {
 			logError(error, 'Sharing process');
 
 			if (error instanceof Error) {
-				switch (error.message) {
-					case 'Web Share API not supported':
-						await fallbackShare(shareText, shareUrl);
-						break;
-					case 'Failed to fetch the image':
-						alert('Unable to load the image for sharing. Sharing text instead.');
-						await fallbackShare(shareText, shareUrl);
-						break;
-					case 'File sharing not supported':
-						alert('File sharing not supported on this device. Sharing text instead.');
-						await navigator.share({ text: `${shareText}\n${shareUrl}` });
-						break;
-					default:
-						if (error.name === 'AbortError') {
-							console.log('Share cancelled by the user');
-						} else {
-							alert(`An error occurred while sharing: ${error.message}`);
+				if (error.name === 'AbortError') {
+					console.log('Share cancelled by the user');
+				} else if (error.message === 'Web Share API not supported') {
+					await fallbackShare(shareText, shareUrl);
+				} else {
+					const retry = window.confirm(
+						'An error occurred while sharing. Would you like to try sharing without the image?'
+					);
+					if (retry) {
+						try {
+							await shareContent(false);
+						} catch (retryError) {
+							logError(retryError, 'Retry sharing');
+							await fallbackShare(shareText, shareUrl);
 						}
+					} else {
+						await fallbackShare(shareText, shareUrl);
+					}
 				}
 			} else {
-				alert('An unexpected error occurred. Please try again.');
+				await fallbackShare(shareText, shareUrl);
 			}
 		}
 	};
 
 	const fallbackShare = async (text: string, url: string) => {
+		const fullText = `${text}\n${url}`;
 		if (navigator.clipboard) {
 			try {
-				await navigator.clipboard.writeText(`${text}\n${url}`);
+				await navigator.clipboard.writeText(fullText);
 				alert('Giveaway details copied to clipboard!');
 			} catch (clipboardError) {
 				console.error('Clipboard write failed:', clipboardError);
-				alert(`Please share this text:\n\n${text}\n${url}`);
+				promptManualCopy(fullText);
 			}
 		} else {
-			alert(`Please share this text:\n\n${text}\n${url}`);
+			promptManualCopy(fullText);
 		}
+	};
+
+	const promptManualCopy = (text: string) => {
+		const textArea = document.createElement('textarea');
+		textArea.value = text;
+		document.body.appendChild(textArea);
+		textArea.focus();
+		textArea.select();
+		try {
+			document.execCommand('copy');
+			alert(
+				'Giveaway details copied to clipboard! You can now paste it wherever you want to share.'
+			);
+		} catch (err) {
+			console.error('Failed to copy text: ', err);
+			alert(`Please manually copy and share this text:\n\n${text}`);
+		}
+		document.body.removeChild(textArea);
 	};
 
 	return (
