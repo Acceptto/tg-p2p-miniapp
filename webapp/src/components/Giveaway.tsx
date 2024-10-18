@@ -54,48 +54,81 @@ export default function Giveaway() {
 		const shareText = 'Win a serene escape to our minimalist resort 🏝️';
 		const shareUrl = window.location.href;
 
+		const logError = (error: any, context: string) => {
+			console.error(`Error in ${context}:`, error);
+			if (error instanceof Error) {
+				console.error('Error name:', error.name);
+				console.error('Error message:', error.message);
+				console.error('Error stack:', error.stack);
+			}
+		};
+
 		try {
-			if (navigator.share) {
-				// Fetch the image
+			if (!navigator.share) {
+				throw new Error('Web Share API not supported');
+			}
+
+			// Fetch the image
+			let file;
+			try {
 				const response = await fetch(imageUrl);
 				if (!response.ok) {
-					throw new Error('Failed to fetch the image');
+					throw new Error(`HTTP error! status: ${response.status}`);
 				}
 				const blob = await response.blob();
-				const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+				file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+			} catch (fetchError) {
+				logError(fetchError, 'Image fetch');
+				throw new Error('Failed to fetch the image');
+			}
 
-				// Attempt to share with only the file
-				if (navigator.canShare && navigator.canShare({ files: [file] })) {
-					await navigator.share({ files: [file] });
-				} else {
-					// If file sharing is not supported, share text and URL
-					await navigator.share({
-						text: `${shareText}\n${shareUrl}`,
-					});
+			// Check if file sharing is supported
+			if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+				throw new Error('File sharing not supported');
+			}
+
+			// Attempt to share the file
+			await navigator.share({ files: [file] });
+		} catch (error) {
+			logError(error, 'Sharing process');
+
+			if (error instanceof Error) {
+				switch (error.message) {
+					case 'Web Share API not supported':
+						await fallbackShare(shareText, shareUrl);
+						break;
+					case 'Failed to fetch the image':
+						alert('Unable to load the image for sharing. Sharing text instead.');
+						await fallbackShare(shareText, shareUrl);
+						break;
+					case 'File sharing not supported':
+						alert('File sharing not supported on this device. Sharing text instead.');
+						await navigator.share({ text: `${shareText}\n${shareUrl}` });
+						break;
+					default:
+						if (error.name === 'AbortError') {
+							console.log('Share cancelled by the user');
+						} else {
+							alert(`An error occurred while sharing: ${error.message}`);
+						}
 				}
 			} else {
-				// Fallback for browsers that don't support Web Share API
-				if (navigator.clipboard) {
-					await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-					alert('Giveaway details copied to clipboard!');
-				} else {
-					alert(`Share this giveaway:\n\n${shareText}\n${shareUrl}`);
-				}
+				alert('An unexpected error occurred. Please try again.');
 			}
-		} catch (error: unknown) {
-			console.error('Error sharing:', error);
-			if (
-				error instanceof TypeError &&
-				error instanceof Error &&
-				error.message.includes('Failed to fetch')
-			) {
-				alert('Unable to load the image for sharing. Please try again later.');
-			} else if (error instanceof Error && error.name === 'AbortError') {
-				// User cancelled the share operation
-				console.log('Share cancelled');
-			} else {
-				alert('Oops! Something went wrong while sharing. Please try again.');
+		}
+	};
+
+	const fallbackShare = async (text: string, url: string) => {
+		if (navigator.clipboard) {
+			try {
+				await navigator.clipboard.writeText(`${text}\n${url}`);
+				alert('Giveaway details copied to clipboard!');
+			} catch (clipboardError) {
+				console.error('Clipboard write failed:', clipboardError);
+				alert(`Please share this text:\n\n${text}\n${url}`);
 			}
+		} else {
+			alert(`Please share this text:\n\n${text}\n${url}`);
 		}
 	};
 
