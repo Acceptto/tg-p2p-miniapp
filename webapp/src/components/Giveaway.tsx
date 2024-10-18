@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Gift, UserPlus, Share2, Clock, Plane, Hotel } from 'lucide-react';
+import giveawayImage from '@/public/giveaway-image.jpg';
 
 const participants = [
 	{ name: 'Olivia' },
@@ -49,110 +50,40 @@ export default function Giveaway() {
 	};
 
 	const handleShare = async () => {
-		const imageUrl =
-			'https://img.freepik.com/free-vector/gradient-enter-win-label_23-2150306088.jpg';
-		const shareText = 'Win a serene escape to our minimalist resort 🏝️';
-		const shareUrl = window.location.href;
-
-		const logError = (error: any, context: string) => {
-			console.error(`Error in ${context}:`, error);
-			if (error instanceof Error) {
-				console.error('Error name:', error.name);
-				console.error('Error message:', error.message);
-				console.error('Error stack:', error.stack);
-			}
-		};
-
-		const shareContent = async (withImage: boolean) => {
-			if (!navigator.share) {
-				throw new Error('Web Share API not supported');
-			}
-
-			if (withImage) {
-				try {
-					const response = await fetch(imageUrl, { mode: 'cors' });
-					if (!response.ok) {
-						throw new Error(`HTTP error! status: ${response.status}`);
-					}
-					const blob = await response.blob();
-					const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
-
-					if (navigator.canShare && navigator.canShare({ files: [file] })) {
-						await navigator.share({ files: [file] });
-						return;
-					}
-				} catch (fetchError) {
-					logError(fetchError, 'Image fetch');
-					console.warn('Failed to fetch image, falling back to text sharing');
-				}
-			}
-
-			// If image sharing failed or wasn't attempted, fall back to text sharing
-			await navigator.share({ text: `${shareText}\n${shareUrl}` });
-		};
+		if (!navigator.share) {
+			alert(
+				'Your browser does not support sharing. Please try on a mobile device or a different browser.'
+			);
+			return;
+		}
 
 		try {
-			await shareContent(true);
-		} catch (error) {
-			logError(error, 'Sharing process');
+			// Create a File object from the imported image
+			const response = await fetch(giveawayImage);
+			const blob = await response.blob();
+			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
+			if (navigator.canShare && navigator.canShare({ files: [file] })) {
+				await navigator.share({ files: [file] });
+			} else {
+				throw new Error('File sharing not supported on this device');
+			}
+		} catch (error) {
+			console.error('Error sharing:', error);
 			if (error instanceof Error) {
 				if (error.name === 'AbortError') {
 					console.log('Share cancelled by the user');
-				} else if (error.message === 'Web Share API not supported') {
-					await fallbackShare(shareText, shareUrl);
-				} else {
-					const retry = window.confirm(
-						'An error occurred while sharing. Would you like to try sharing without the image?'
+				} else if (error.message === 'File sharing not supported on this device') {
+					alert(
+						'Your device does not support sharing image files. Please try on a different device.'
 					);
-					if (retry) {
-						try {
-							await shareContent(false);
-						} catch (retryError) {
-							logError(retryError, 'Retry sharing');
-							await fallbackShare(shareText, shareUrl);
-						}
-					} else {
-						await fallbackShare(shareText, shareUrl);
-					}
+				} else {
+					alert('Unable to share the image. Please try again.');
 				}
 			} else {
-				await fallbackShare(shareText, shareUrl);
+				alert('An unexpected error occurred. Please try again later.');
 			}
 		}
-	};
-
-	const fallbackShare = async (text: string, url: string) => {
-		const fullText = `${text}\n${url}`;
-		if (navigator.clipboard) {
-			try {
-				await navigator.clipboard.writeText(fullText);
-				alert('Giveaway details copied to clipboard!');
-			} catch (clipboardError) {
-				console.error('Clipboard write failed:', clipboardError);
-				promptManualCopy(fullText);
-			}
-		} else {
-			promptManualCopy(fullText);
-		}
-	};
-
-	const promptManualCopy = (text: string) => {
-		const textArea = document.createElement('textarea');
-		textArea.value = text;
-		document.body.appendChild(textArea);
-		textArea.focus();
-		textArea.select();
-		try {
-			document.execCommand('copy');
-			alert(
-				'Giveaway details copied to clipboard! You can now paste it wherever you want to share.'
-			);
-		} catch (err) {
-			console.error('Failed to copy text: ', err);
-			alert(`Please manually copy and share this text:\n\n${text}`);
-		}
-		document.body.removeChild(textArea);
 	};
 
 	return (
