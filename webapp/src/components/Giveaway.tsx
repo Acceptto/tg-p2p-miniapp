@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -51,11 +51,8 @@ export default function Giveaway() {
 	const handleShare = async () => {
 		const imageUrl =
 			'https://img.freepik.com/free-vector/gradient-enter-win-label_23-2150306088.jpg';
-		const shareData = {
-			title: 'Our Hotel Giveaway ✈️',
-			text: 'Win a serene escape to our minimalist resort 🏝️',
-			url: window.location.href,
-		};
+		const shareText = 'Win a serene escape to our minimalist resort 🏝️';
+		const shareUrl = window.location.href;
 
 		try {
 			if (navigator.share) {
@@ -67,24 +64,35 @@ export default function Giveaway() {
 				const blob = await response.blob();
 				const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
-				// Attempt to share with the image
+				// Attempt to share with only the file
 				if (navigator.canShare && navigator.canShare({ files: [file] })) {
-					await navigator.share({
-						...shareData,
-						files: [file],
-					});
+					await navigator.share({ files: [file] });
 				} else {
-					// If sharing with files is not supported, share without the image
-					await navigator.share(shareData);
+					// If file sharing is not supported, share text and URL
+					await navigator.share({
+						text: `${shareText}\n${shareUrl}`,
+					});
 				}
 			} else {
 				// Fallback for browsers that don't support Web Share API
-				alert('Share this giveaway:\n\n' + shareData.text + '\n' + shareData.url);
+				if (navigator.clipboard) {
+					await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+					alert('Giveaway details copied to clipboard!');
+				} else {
+					alert(`Share this giveaway:\n\n${shareText}\n${shareUrl}`);
+				}
 			}
-		} catch (error) {
+		} catch (error: unknown) {
 			console.error('Error sharing:', error);
-			if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+			if (
+				error instanceof TypeError &&
+				error instanceof Error &&
+				error.message.includes('Failed to fetch')
+			) {
 				alert('Unable to load the image for sharing. Please try again later.');
+			} else if (error instanceof Error && error.name === 'AbortError') {
+				// User cancelled the share operation
+				console.log('Share cancelled');
 			} else {
 				alert('Oops! Something went wrong while sharing. Please try again.');
 			}
