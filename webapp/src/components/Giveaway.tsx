@@ -48,78 +48,32 @@ export default function Giveaway() {
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
 
-	const getBase64Image = async (imageUrl: string): Promise<string> => {
-		const response = await fetch(imageUrl);
-		const blob = await response.blob();
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader();
-			reader.onloadend = () => resolve(reader.result as string);
-			reader.onerror = reject;
-			reader.readAsDataURL(blob);
-		});
-	};
-
-	const shareToInstagramStories = async (imageUrl: string) => {
-		try {
-			const base64Image = await getBase64Image(imageUrl);
-			const encodedImage = encodeURIComponent(base64Image);
-			const instagramUrl = `instagram://story?source_application=2045293679207128&background_image=${encodedImage}`;
-
-			window.location.href = instagramUrl;
-
-			// Fallback for desktop or if the Instagram app isn't installed
-			setTimeout(() => {
-				if (document.hidden) {
-					// The app was likely opened, do nothing
-				} else {
-					// The app probably isn't installed, provide a fallback
-					alert(
-						"Couldn't open Instagram. Please make sure the Instagram app is installed or try sharing manually."
-					);
-				}
-			}, 2000);
-		} catch (error) {
-			console.error('Error preparing image for Instagram:', error);
-			alert('Failed to prepare the image for sharing to Instagram. Please try again.');
-		}
-	};
-
 	const handleShare = async () => {
-		const imageUrl = `${window.location.origin}/giveaway-image.jpg`; // Ensure this is a JPEG or PNG
-
-		// Check if it's Instagram (this check isn't 100% reliable)
-		const isInstagram = /Instagram/.test(navigator.userAgent);
-
-		if (isInstagram) {
-			await shareToInstagramStories(imageUrl);
-			return;
-		}
-
-		if (!navigator.share) {
-			alert(
-				'Your browser does not support sharing. Please try on a mobile device or a different browser.'
-			);
-			return;
-		}
+		const imageUrl = '/giveaway-image.jpg'; // Assuming the image is in the public folder
+		console.log(`Sharing image: ${imageUrl}`);
 
 		try {
-			// Fetch the image
-			const response = await fetch(imageUrl);
-			if (!response.ok) {
-				throw new Error(`Failed to fetch image: ${response.statusText}`);
-			}
-			const blob = await response.blob();
-			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+			const fetchedImage = await fetch(imageUrl);
+			const blobImage = await fetchedImage.blob();
+			const fileName = 'giveaway-image.jpg';
+			const filesArray = [
+				new File([blobImage], fileName, {
+					type: 'image/jpeg', // Adjust this if your image is not a JPEG
+					lastModified: Date.now(),
+				}),
+			];
 
-			if (navigator.canShare && navigator.canShare({ files: [file] })) {
-				await navigator.share({
-					files: [file],
-				});
+			const shareData = {
+				files: filesArray,
+			};
+
+			if (navigator.canShare && navigator.canShare(shareData)) {
+				await navigator.share(shareData);
 			} else {
-				throw new Error('File sharing not supported on this device');
+				throw new Error('Web Share API not supported');
 			}
 		} catch (error) {
-			console.error('Error sharing:', error);
+			console.error('Error sharing image:', error);
 			if (error instanceof Error) {
 				if (error.name === 'AbortError') {
 					console.log('Share cancelled by the user');
