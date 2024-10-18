@@ -4,16 +4,19 @@
 	"private": true,
 	"scripts": {
 		"dev": "wrangler dev",
-		"deploy": "wrangler deploy",
+		"deploy": "wrangler deploy --minify",
 		"dev:db:init": "wrangler d1 execute DB --file worker/sql/init.sql --local",
 		"dev:db:drop": "wrangler d1 execute DB --file worker/sql/drop.sql  --local",
-		"type-check": "tsc --noEmit"
+		"type-check": "tsc --noEmit",
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"format": "prettier --write ."
 	},
 	"dependencies": {
 		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241004.0",
+		"prettier": "^3.3.3",
 		"typescript": "^5.6.3",
 		"wrangler": "^3.80.3"
 	}

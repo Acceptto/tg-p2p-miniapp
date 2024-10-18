@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -46,6 +46,49 @@ export default function Giveaway() {
 	const handleEnterGiveaway = () => {
 		setIsEntered(true);
 		setProgress(prev => Math.min(prev + 5, 100));
+	};
+
+	const handleShare = async () => {
+		const imageUrl =
+			'https://img.freepik.com/free-vector/gradient-enter-win-label_23-2150306088.jpg';
+		const shareData = {
+			title: 'Our Hotel Giveaway ✈️',
+			text: 'Win a serene escape to our minimalist resort 🏝️',
+			url: window.location.href,
+		};
+
+		try {
+			if (navigator.share) {
+				// Fetch the image
+				const response = await fetch(imageUrl);
+				if (!response.ok) {
+					throw new Error('Failed to fetch the image');
+				}
+				const blob = await response.blob();
+				const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+
+				// Attempt to share with the image
+				if (navigator.canShare && navigator.canShare({ files: [file] })) {
+					await navigator.share({
+						...shareData,
+						files: [file],
+					});
+				} else {
+					// If sharing with files is not supported, share without the image
+					await navigator.share(shareData);
+				}
+			} else {
+				// Fallback for browsers that don't support Web Share API
+				alert('Share this giveaway:\n\n' + shareData.text + '\n' + shareData.url);
+			}
+		} catch (error) {
+			console.error('Error sharing:', error);
+			if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+				alert('Unable to load the image for sharing. Please try again later.');
+			} else {
+				alert('Oops! Something went wrong while sharing. Please try again.');
+			}
+		}
 	};
 
 	return (
@@ -146,6 +189,7 @@ export default function Giveaway() {
 					</p>
 				)}
 				<Button
+					onClick={handleShare}
 					variant="outline"
 					className="w-full text-sm sm:text-base border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
 				>

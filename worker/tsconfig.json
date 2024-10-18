@@ -9,7 +9,7 @@
 		"strict": true,
 		"noEmit": true,
 		"esModuleInterop": false,
-		"skipLibCheck": false,
+		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"noUncheckedIndexedAccess": true,
 		"baseUrl": ".",
