@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -16,6 +16,10 @@ const participants = [
 	{ name: 'Charlotte' },
 	// Add more participants as needed
 ];
+
+// PNG data URL (base64 encoded image)
+const PNG_DATA_URL =
+	'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAIAAAABHJwNAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEyGibVAAAAdklEQVRIDaXBAQEAAABDoI1YgD3BAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQAAX8IsAADwwlK0AAAAAElFTkSuQmCC';
 
 export default function Giveaway() {
 	const [timeLeft, setTimeLeft] = useState(259200); // 3 days in seconds
@@ -47,36 +51,47 @@ export default function Giveaway() {
 		setIsEntered(true);
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
-	const handleShare = async () => {
-		try {
-			// Attempt to fetch the image file
-			const response = await fetch('/giveaway-image.jpg');
+
+	const [shareFile, setShareFile] = useState<File | null>(null);
+
+	useEffect(() => {
+		const createShareFile = async () => {
+			const response = await fetch(PNG_DATA_URL);
 			const blob = await response.blob();
-			const imageFile = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+			const file = new File([blob], 'giveaway-image.png', { type: 'image/png' });
+			setShareFile(file);
+		};
 
-			const shareData = {
-				files: [imageFile],
-			};
+		createShareFile();
+	}, []);
 
-			// Check if we can share files
-			if (navigator.canShare && navigator.canShare(shareData)) {
-				await navigator.share(shareData);
-				console.log('shared');
-			} else {
-				// Fallback: Prompt user to save and share manually
-				const blobUrl = URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = blobUrl;
-				link.download = 'giveaway-image.jpg';
-				link.click();
-				URL.revokeObjectURL(blobUrl);
-
-				console.log('Cant share');
-			}
-		} catch (error) {
-			console.error('Error sharing:', error);
+	const handleShare = useCallback(async () => {
+		if (!shareFile) {
+			console.log('Share image is not ready. Please try again.');
+			return;
 		}
-	};
+
+		const shareData = { files: [shareFile] };
+
+		if (navigator.canShare && navigator.canShare(shareData)) {
+			try {
+				await navigator.share(shareData);
+				console.log('Thanks for spreading the word!');
+			} catch (error) {
+				console.error('Error sharing:', error);
+			}
+		} else {
+			// Fallback: Prompt user to save and share manually
+			const blobUrl = URL.createObjectURL(shareFile);
+			const link = document.createElement('a');
+			link.href = blobUrl;
+			link.download = 'giveaway-image.png';
+			link.click();
+			URL.revokeObjectURL(blobUrl);
+
+			console.log('Please share the downloaded image manually.');
+		}
+	}, [shareFile]);
 
 	return (
 		<Card className="w-full bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700 mx-auto max-w-sm sm:max-w-md">
