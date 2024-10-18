@@ -47,22 +47,35 @@ export default function Giveaway() {
 		setIsEntered(true);
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
+	const handleShare = async () => {
+		try {
+			// Attempt to fetch the image file
+			const response = await fetch('/giveaway-image.jpg');
+			const blob = await response.blob();
+			const imageFile = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
-	const handleShare = () => {
-		const instagramURL = 'instagram://story-camera';
-		const fallbackURL = 'https://www.instagram.com/';
+			const shareData = {
+				files: [imageFile],
+			};
 
-		// Attempt to open Instagram story camera
-		window.open(instagramURL, '_blank');
+			// Check if we can share files
+			if (navigator.canShare && navigator.canShare(shareData)) {
+				await navigator.share(shareData);
+				console.log('shared');
+			} else {
+				// Fallback: Prompt user to save and share manually
+				const blobUrl = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = blobUrl;
+				link.download = 'giveaway-image.jpg';
+				link.click();
+				URL.revokeObjectURL(blobUrl);
 
-		// Set a timeout to check if Instagram app was opened
-		setTimeout(() => {
-			// If Instagram didn't open, the page won't have changed, so we can check if it's still focused
-			if (document.hasFocus()) {
-				// If still focused, Instagram likely isn't installed, so open fallback URL
-				window.open(fallbackURL, '_blank');
+				console.log('Cant share');
 			}
-		}, 500);
+		} catch (error) {
+			console.error('Error sharing:', error);
+		}
 	};
 
 	return (
