@@ -5,7 +5,6 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Gift, UserPlus, Share2, Clock, Plane, Hotel } from 'lucide-react';
-import giveawayImage from '@/public/giveaway-image.jpg';
 
 const participants = [
 	{ name: 'Olivia' },
@@ -57,9 +56,14 @@ export default function Giveaway() {
 			return;
 		}
 
+		const imageUrl = '/giveaway-image.jpg'; // This path is relative to the public folder
+
 		try {
-			// Create a File object from the imported image
-			const response = await fetch(giveawayImage);
+			// Fetch the image from the public folder
+			const response = await fetch(imageUrl);
+			if (!response.ok) {
+				throw new Error(`Failed to fetch image: ${response.statusText}`);
+			}
 			const blob = await response.blob();
 			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
@@ -78,7 +82,7 @@ export default function Giveaway() {
 						'Your device does not support sharing image files. Please try on a different device.'
 					);
 				} else {
-					alert('Unable to share the image. Please try again.');
+					alert(`Unable to share the image: ${error.message}`);
 				}
 			} else {
 				alert('An unexpected error occurred. Please try again later.');
