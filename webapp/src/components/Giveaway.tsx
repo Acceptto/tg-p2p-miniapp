@@ -67,8 +67,22 @@ export default function Giveaway() {
 			const blob = await response.blob();
 			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
 
+			// Check if the user agent suggests it's Instagram
+			const isInstagram = /Instagram/.test(navigator.userAgent);
+
 			if (navigator.canShare && navigator.canShare({ files: [file] })) {
-				await navigator.share({ files: [file] });
+				if (isInstagram) {
+					// For Instagram, we can only share the image without any text
+					await navigator.share({ files: [file] });
+				} else {
+					// For other platforms, we can include both file and text
+					await navigator.share({
+						files: [file],
+						title: 'Join our Giveaway!',
+						text: 'Win a serene escape to our minimalist resort 🏝️',
+						url: window.location.href,
+					});
+				}
 			} else {
 				throw new Error('File sharing not supported on this device');
 			}
@@ -80,6 +94,10 @@ export default function Giveaway() {
 				} else if (error.message === 'File sharing not supported on this device') {
 					alert(
 						'Your device does not support sharing image files. Please try on a different device.'
+					);
+				} else if (/Instagram/.test(navigator.userAgent)) {
+					alert(
+						'Sharing to Instagram Stories may not work. Try saving the image and uploading it manually to your story.'
 					);
 				} else {
 					alert(`Unable to share the image: ${error.message}`);
