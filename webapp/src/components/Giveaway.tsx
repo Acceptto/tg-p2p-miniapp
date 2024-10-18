@@ -63,7 +63,7 @@ export default function Giveaway() {
 		try {
 			const base64Image = await getBase64Image(imageUrl);
 			const encodedImage = encodeURIComponent(base64Image);
-			const instagramUrl = `instagram://story?source_application=your_app_id&background_image=${encodedImage}`;
+			const instagramUrl = `instagram://story?source_application=2045293679207128&background_image=${encodedImage}`;
 
 			window.location.href = instagramUrl;
 
