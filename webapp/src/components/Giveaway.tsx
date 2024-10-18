@@ -48,44 +48,21 @@ export default function Giveaway() {
 		setProgress(prev => Math.min(prev + 5, 100));
 	};
 
-	const handleShare = async () => {
-		const imageUrl = '/giveaway-image.jpg'; // Assuming the image is in the public folder
-		console.log(`Sharing image: ${imageUrl}`);
+	const handleShare = () => {
+		const instagramURL = 'instagram://story-camera';
+		const fallbackURL = 'https://www.instagram.com/';
 
-		try {
-			const fetchedImage = await fetch(imageUrl);
-			const blobImage = await fetchedImage.blob();
-			const fileName = 'giveaway-image.jpg';
-			const filesArray = [
-				new File([blobImage], fileName, {
-					type: 'image/jpeg', // Adjust this if your image is not a JPEG
-					lastModified: Date.now(),
-				}),
-			];
+		// Attempt to open Instagram story camera
+		window.open(instagramURL, '_blank');
 
-			const shareData = {
-				files: filesArray,
-			};
-
-			if (navigator.canShare && navigator.canShare(shareData)) {
-				await navigator.share(shareData);
-			} else {
-				throw new Error('Web Share API not supported');
+		// Set a timeout to check if Instagram app was opened
+		setTimeout(() => {
+			// If Instagram didn't open, the page won't have changed, so we can check if it's still focused
+			if (document.hasFocus()) {
+				// If still focused, Instagram likely isn't installed, so open fallback URL
+				window.open(fallbackURL, '_blank');
 			}
-		} catch (error) {
-			console.error('Error sharing image:', error);
-			if (error instanceof Error) {
-				if (error.name === 'AbortError') {
-					console.log('Share cancelled by the user');
-				} else {
-					alert(
-						`Unable to share the image: ${error.message}. Try saving the image and sharing manually.`
-					);
-				}
-			} else {
-				alert('An unexpected error occurred. Please try again later.');
-			}
-		}
+		}, 500);
 	};
 
 	return (
