@@ -56,7 +56,7 @@ export default function Giveaway() {
 			return;
 		}
 
-		const imageUrl = '/giveaway-image.jpg'; // This path is relative to the public folder
+		const imageUrl = '/giveaway-image.jpeg'; // This path is relative to the public folder
 
 		try {
 			// Fetch the image from the public folder
@@ -65,7 +65,7 @@ export default function Giveaway() {
 				throw new Error(`Failed to fetch image: ${response.statusText}`);
 			}
 			const blob = await response.blob();
-			const file = new File([blob], 'giveaway-image.jpg', { type: 'image/jpeg' });
+			const file = new File([blob], 'giveaway-image.jpeg', { type: 'image/jpeg' });
 
 			if (navigator.canShare && navigator.canShare({ files: [file] })) {
 				await navigator.share({ files: [file] });
