@@ -74,7 +74,6 @@ export default function Giveaway() {
 			];
 
 			const shareData = {
-				title: `giveaway-image.png`,
 				files: filesArray,
 			};
 
