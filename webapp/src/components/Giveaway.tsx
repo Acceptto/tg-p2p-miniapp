@@ -56,7 +56,7 @@ export default function Giveaway() {
 			return;
 		}
 
-		const imageUrl = '/giveaway-image.png'; // This path is relative to the public folder
+		const imageUrl = '/giveaway.png'; // This path is relative to the public folder
 
 		try {
 			// Fetch the image from the public folder
@@ -67,7 +67,7 @@ export default function Giveaway() {
 			const blob = await response.blob();
 
 			const filesArray = [
-				new File([blob], `giveaway-image.png`, {
+				new File([blob], `giveaway.png`, {
 					type: 'image/png',
 					lastModified: new Date().getTime(),
 				}),
