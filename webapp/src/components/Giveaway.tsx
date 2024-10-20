@@ -65,13 +65,21 @@ export default function Giveaway() {
 				throw new Error(`Failed to fetch image: ${response.statusText}`);
 			}
 			const blob = await response.blob();
-			const file = new File([blob], 'giveaway-image.png', {
-				type: 'image/png',
-				lastModified: new Date().getTime(),
-			});
 
-			if (navigator.canShare && navigator.canShare({ files: [file] })) {
-				await navigator.share({ files: [file] });
+			const filesArray = [
+				new File([blob], `giveaway-image.png`, {
+					type: 'image/png',
+					lastModified: new Date().getTime(),
+				}),
+			];
+
+			const shareData = {
+				title: `giveaway-image.png`,
+				files: filesArray,
+			};
+
+			if (navigator.canShare && navigator.canShare(shareData)) {
+				await navigator.share(shareData);
 			} else {
 				throw new Error('File sharing not supported on this device');
 			}
