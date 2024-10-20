@@ -71,7 +71,7 @@ export default function Giveaway() {
 			});
 
 			if (navigator.canShare && navigator.canShare({ files: [file] })) {
-				await navigator.share({ title: `giveaway-image`, files: [file] });
+				await navigator.share({ files: [file] });
 			} else {
 				throw new Error('File sharing not supported on this device');
 			}
