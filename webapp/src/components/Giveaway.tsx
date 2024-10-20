@@ -68,7 +68,7 @@ export default function Giveaway() {
 
 			const filesArray = [
 				new File([blob], `giveaway.png`, {
-					type: 'image/png',
+					type: blob.type,
 					lastModified: new Date().getTime(),
 				}),
 			];
