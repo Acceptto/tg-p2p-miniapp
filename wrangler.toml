@@ -1,10 +1,13 @@
 name = "telegram-p2p"
 compatibility_date = "2024-09-02"
+upload_source_maps = true
 
 # For Cloudflare Workers
 main = "worker/index.ts"
-minify = true
 tsconfig = "worker/tsconfig.json"
+
+[placement]
+mode = "smart"
 
 # Environment variables
 [vars]
