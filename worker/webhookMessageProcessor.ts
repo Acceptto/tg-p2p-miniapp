@@ -168,7 +168,7 @@ async function handleTravelMessage(
 
 	// Append igsId to each URL for tracking
 	const baseUrl = 'https://insta-group-offer.bdv94gs62z.workers.dev';
-	const websiteUrls = titles.map(() => `${baseUrl}/${igsId}`);
+	const websiteUrls = titles.map(() => `${baseUrl}/${igId}`);
 
 	const firstButtonTitles = [
 		'JOIN',
@@ -252,7 +252,7 @@ async function handleStoryMention(
 		];
 		const subtitles = ['Enter now for a chance to win!'];
 		// Create URL with igsId
-		const websiteUrls = [`https://insta-group-offer.bdv94gs62z.workers.dev/${igsId}`];
+		const websiteUrls = [`https://insta-group-offer.bdv94gs62z.workers.dev/${igId}`];
 		const firstButtonTitles = ['JOIN'];
 		const secondButtonTitles = ['LEARN MORE'];
 		await instagram.sendTemplate(
