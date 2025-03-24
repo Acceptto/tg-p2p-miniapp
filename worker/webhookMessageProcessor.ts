@@ -165,13 +165,11 @@ async function handleTravelMessage(
 		'Relax on a luxurious Caribbean cruise',
 		'Witness the magical Northern Lights',
 	];
-	const websiteUrls = [
-		'https://insta-group-offer.bdv94gs62z.workers.dev',
-		'https://insta-group-offer.bdv94gs62z.workers.dev',
-		'https://insta-group-offer.bdv94gs62z.workers.dev',
-		'https://insta-group-offer.bdv94gs62z.workers.dev',
-		'https://insta-group-offer.bdv94gs62z.workers.dev',
-	];
+
+	// Append igsId to each URL for tracking
+	const baseUrl = 'https://insta-group-offer.bdv94gs62z.workers.dev';
+	const websiteUrls = titles.map(() => `${baseUrl}/${igsId}`);
+
 	const firstButtonTitles = [
 		'JOIN',
 		'Book Tokyo Tour',
@@ -253,7 +251,8 @@ async function handleStoryMention(
 			'https://img.freepik.com/free-vector/gradient-enter-win-label_23-2150306088.jpg',
 		];
 		const subtitles = ['Enter now for a chance to win!'];
-		const websiteUrls = ['https://telegram-p2p.pages.dev'];
+		// Create URL with igsId
+		const websiteUrls = [`https://insta-group-offer.bdv94gs62z.workers.dev/${igsId}`];
 		const firstButtonTitles = ['JOIN'];
 		const secondButtonTitles = ['LEARN MORE'];
 		await instagram.sendTemplate(
